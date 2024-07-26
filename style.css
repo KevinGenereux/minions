@@ -1,0 +1,73 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+#frame {
+  position: absolute;
+  width: 540px;
+  height: 400px;
+  overflow: hidden;
+  border: 2px solid black; /* Optional: Adds a border around the frame */
+}
+
+#map {
+  position: relative;
+  width: 100%; /* Assuming the map is larger */
+  height: 880px; /* Assuming the map is larger */
+  background-image: url('imgs/map.png');
+  background-size: cover;
+  /* background-repeat: no-repeat; */
+}
+
+#turret {
+  position: absolute;
+  left: 230px; /* Adjust according to your map layout */
+  bottom: 200px;
+  width: 40px;
+  height: 40px;
+  user-select: none; /* Prevents turret selection */
+  z-index: 10;
+}
+
+#turret-image {
+  width: 100%;
+  height: 100%;
+}
+
+#gun-image {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  width: 32px;
+  height: 21px;
+  transform-origin: 11px 11px;
+  z-index: 10;
+}
+
+#tank {
+  position: absolute;
+  z-index: 10;
+}
+
+#tank-image {
+  width: 32px;
+  height: 23px;
+  transform-origin: center center; /* For rotating the tank */
+  z-index: 10;
+}
+
+.bullet {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: black;
+  border-radius: 50%;
+  /* z-index: 20; */
+}
