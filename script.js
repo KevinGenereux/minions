@@ -4,7 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankImage = document.getElementById('tank-image');
   const frame = document.getElementById('frame');
   const turret = document.getElementById('turret');
+  const bulletsContainer = document.getElementById('bullets');
   const tankSpeed = 5;
+  const fireInterval = 500; // Fire bullet every 500ms
+  const fireRange = 200; // Range within which the tank can fire
   let tankX = 50; // Starting X position
   let tankY = map.offsetHeight - 80; // Starting Y position
   let targetX = tankX;
@@ -66,16 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
       bullet.style.left = `${startX + deltaX * progress}px`;
       bullet.style.top = `${startY + deltaY * progress}px`;
 
-      // Collision detection with turret edges
-      const bulletRect = bullet.getBoundingClientRect();
-      const turretRect = turret.getBoundingClientRect();
-
-      if (bulletRect.left >= turretRect.left && bulletRect.right <= turretRect.right &&
-          bulletRect.top >= turretRect.top && bulletRect.bottom <= turretRect.bottom) {
-        bullet.remove();
-        return;
-      }
-
       if (progress < 1) {
         requestAnimationFrame(animateBullet);
       } else {
@@ -86,12 +79,30 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(animateBullet);
   }
 
+  function isWithinRange() {
+    const tankCenterX = tankX + tankImage.offsetWidth / 2;
+    const tankCenterY = tankY + tankImage.offsetHeight / 2;
+    const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+    const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+
+    const deltaX = turretCenterX - tankCenterX;
+    const deltaY = turretCenterY - tankCenterY;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    return distance <= fireRange;
+  }
+
+  setInterval(() => {
+    if (isWithinRange()) {
+      fireBullet();
+    }
+  }, fireInterval);
+
   map.addEventListener('click', (e) => {
     const mapRect = map.getBoundingClientRect();
     const tankRect = tankImage.getBoundingClientRect();
     targetX = e.clientX - mapRect.left - tankRect.width / 2;
     targetY = e.clientY - mapRect.top - tankRect.height / 2;
-    fireBullet();
   });
 
   tank.style.left = `${tankX}px`;

@@ -69,5 +69,5 @@ html, body {
   height: 5px;
   background-color: black;
   border-radius: 50%;
-  /* z-index: 20; */
+  z-index: 20;
 }
