@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankImage = document.getElementById('tank-image');
   const frame = document.getElementById('frame');
   const turret = document.getElementById('turret');
-  const bulletsContainer = document.getElementById('bullets');
   const tankSpeed = 5;
   const fireInterval = 500; // Fire bullet every 500ms
   const fireRange = 200; // Range within which the tank can fire
@@ -40,6 +39,18 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(moveTank);
   }
 
+  function calculateOctagonVertices(sideLength, centerX, centerY) {
+    const radius = sideLength / 2 * (1 + Math.sqrt(2));
+    const vertices = [];
+    for (let i = 0; i < 8; i++) {
+        const angle = -Math.PI / 8 + Math.PI / 4 * i;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        vertices.push([x, y]);
+    }
+    return vertices;
+  }
+
   function fireBullet() {
     const bullet = document.createElement('div');
     bullet.className = 'bullet';
@@ -66,10 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const elapsed = timestamp - startTime;
 
       const progress = Math.min(elapsed / (duration * 100), 1);
+      let x = startX + deltaX * progress;
+      let y = startY + deltaY * progress;
+      let point = [x, y];
       bullet.style.left = `${startX + deltaX * progress}px`;
       bullet.style.top = `${startY + deltaY * progress}px`;
 
-      if (progress < 1) {
+      if (!isPointInPolygon(point, octaVertices)) {
         requestAnimationFrame(animateBullet);
       } else {
         bullet.remove();
@@ -92,6 +106,38 @@ document.addEventListener('DOMContentLoaded', () => {
     return distance <= fireRange;
   }
 
+  function isPointInPolygon(point, polygon) {
+    let x = point[0], y = point[1];
+
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        let xi = polygon[i][0], yi = polygon[i][1];
+        let xj = polygon[j][0], yj = polygon[j][1];
+
+        let intersect = ((yi > y) != (yj > y))
+            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+
+    return inside;
+}
+
+  function displayVertices(vertices, size) {
+    const map = document.getElementById('map');
+    vertices.forEach(vertex => {
+        const dot = document.createElement('div');
+        dot.classList.add('dot');
+        dot.style.width = `${size}px`;
+        dot.style.height = `${size}px`;
+        dot.style.backgroundColor = 'red';
+        dot.style.position = 'absolute';
+        dot.style.left = `${vertex[0]}px`;
+        dot.style.top = `${vertex[1]}px`;
+        dot.style.zIndex = 1000;
+        map.appendChild(dot);
+    });
+  }
+
   setInterval(() => {
     if (isWithinRange()) {
       fireBullet();
@@ -107,6 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   tank.style.left = `${tankX}px`;
   tank.style.top = `${tankY}px`;
+
+  const octaVertices = calculateOctagonVertices(13, 135+19, 365);
+  // displayVertices(octaVertices, 3)
 
   moveTank();
 });
