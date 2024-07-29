@@ -45,8 +45,8 @@ html, body {
   position: absolute;
   top: 9px;
   left: 9px;
-  width: 32px;
-  height: 21px;
+  width: 21px;
+  height: 32px;
   transform-origin: 11px 11px;
   z-index: 10;
 }
@@ -65,9 +65,19 @@ html, body {
 
 .bullet {
   position: absolute;
-  width: 5px;
-  height: 5px;
-  background-color: black;
   border-radius: 50%;
   z-index: 20;
+}
+
+.tank-bullet {
+  background-color: black;
+  width: 4px;
+  height: 4px;
+}
+
+.tower-bullet {
+  background-color: purple;
+  width: 5px;
+  height: 5px;
+  z-index: 5;
 }

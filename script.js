@@ -51,15 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return vertices;
   }
 
-  function fireBullet() {
-    const bullet = document.createElement('div');
-    bullet.className = 'bullet';
-    map.appendChild(bullet);
 
-    const startX = tankX + tankImage.offsetWidth / 2;
-    const startY = tankY + tankImage.offsetHeight / 2;
-    const endX = turret.offsetLeft + turret.offsetWidth / 2;
-    const endY = turret.offsetTop + turret.offsetHeight / 2;
+  function fireBullet(startX, startY, endX, endY, bulletType) {
+    const bullet = document.createElement('div');
+    bullet.className = `bullet ${bulletType}`;
+    map.appendChild(bullet);
 
     bullet.style.left = `${startX}px`;
     bullet.style.top = `${startY}px`;
@@ -83,7 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
       bullet.style.left = `${startX + deltaX * progress}px`;
       bullet.style.top = `${startY + deltaY * progress}px`;
 
-      if (!isPointInPolygon(point, octaVertices)) {
+      if (bulletType == 'tower-bullet' && !checkTankCollisionWithBullet(x, y)) {
+        requestAnimationFrame(animateBullet);
+      }
+      else if (bulletType == 'tank-bullet' && !isPointInPolygon(point, octaVertices)) {
         requestAnimationFrame(animateBullet);
       } else {
         bullet.remove();
@@ -104,6 +103,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
     return distance <= fireRange;
+  }
+
+  function checkTankCollisionWithBullet(bulletX, bulletY) {
+    const tankRect = tankImage.getBoundingClientRect();
+    const mapRect = map.getBoundingClientRect();
+    const tankLeft = tankRect.left - mapRect.left;
+    const tankTop = tankRect.top - mapRect.top;
+    const tankRight = tankLeft + tankImage.offsetWidth;
+    const tankBottom = tankTop + tankImage.offsetHeight;
+
+    return bulletX >= tankLeft && bulletX <= tankRight && bulletY >= tankTop && bulletY <= tankBottom;
   }
 
   function isPointInPolygon(point, polygon) {
@@ -140,7 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setInterval(() => {
     if (isWithinRange()) {
-      fireBullet();
+      const tankCenterX = tankX + tankImage.offsetWidth / 2;
+      const tankCenterY = tankY + tankImage.offsetHeight / 2;
+      const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+      const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+      fireBullet(tankCenterX, tankCenterY, turretCenterX, turretCenterY, 'tank-bullet');
+      fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
     }
   }, fireInterval);
 
