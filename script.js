@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankImage = document.getElementById('tank-image');
   const frame = document.getElementById('frame');
   const turret = document.getElementById('turret');
-  const tankSpeed = 5;
+  const tankSpeed = 1;
   const fireInterval = 500; // Fire bullet every 500ms
   const fireRange = 200; // Range within which the tank can fire
   let tankX = 50; // Starting X position
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  function fireBullet(startX, startY, endX, endY, bulletType) {
+  function fireBullet(startX, startY, targetX, targetY, bulletType) {
     const bullet = document.createElement('div');
     bullet.className = `bullet ${bulletType}`;
     map.appendChild(bullet);
@@ -60,37 +60,44 @@ document.addEventListener('DOMContentLoaded', () => {
     bullet.style.left = `${startX}px`;
     bullet.style.top = `${startY}px`;
 
-    const deltaX = endX - startX;
-    const deltaY = endY - startY;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     const bulletSpeed = 10;
-    const duration = distance / bulletSpeed;
 
     let startTime = null;
 
     function animateBullet(timestamp) {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
 
-      const progress = Math.min(elapsed / (duration * 100), 1);
-      let x = startX + deltaX * progress;
-      let y = startY + deltaY * progress;
-      let point = [x, y];
-      bullet.style.left = `${startX + deltaX * progress}px`;
-      bullet.style.top = `${startY + deltaY * progress}px`;
+        let currentTargetX = targetX;
+        let currentTargetY = targetY;
 
-      if (bulletType == 'tower-bullet' && !checkTankCollisionWithBullet(x, y)) {
-        requestAnimationFrame(animateBullet);
-      }
-      else if (bulletType == 'tank-bullet' && !isPointInPolygon(point, octaVertices)) {
-        requestAnimationFrame(animateBullet);
-      } else {
-        bullet.remove();
-      }
+        if (bulletType === 'tower-bullet') {
+            currentTargetX = tankX + tankImage.offsetWidth / 2;
+            currentTargetY = tankY + tankImage.offsetHeight / 2;
+        }
+
+        const deltaX = currentTargetX - startX;
+        const deltaY = currentTargetY - startY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const duration = distance / bulletSpeed;
+        const progress = Math.min(elapsed / (duration * 100), 1);
+
+        let x = startX + (deltaX * progress);
+        let y = startY + (deltaY * progress);
+
+        bullet.style.left = `${x}px`;
+        bullet.style.top = `${y}px`;
+
+        if ((bulletType === 'tower-bullet' && !checkTankCollisionWithBullet(x, y)) ||
+            (bulletType === 'tank-bullet' && !isPointInPolygon([x, y], octaVertices))) {
+            requestAnimationFrame(animateBullet);
+        } else {
+            bullet.remove();
+        }
     }
 
     requestAnimationFrame(animateBullet);
-  }
+}
 
   function isWithinRange() {
     const tankCenterX = tankX + tankImage.offsetWidth / 2;
