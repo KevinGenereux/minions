@@ -4,9 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankImage = document.getElementById('tank-image');
   const frame = document.getElementById('frame');
   const turret = document.getElementById('turret');
-  const tankSpeed = 1;
+  const tankSpeed = 4;
   const fireInterval = 500; // Fire bullet every 500ms
-  const fireRange = 200; // Range within which the tank can fire
+  const fireRange = 100; // Range within which the tank can fire
   let tankX = 50; // Starting X position
   let tankY = map.offsetHeight - 80; // Starting Y position
   let targetX = tankX;
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bullet.style.top = `${y}px`;
 
         if ((bulletType === 'tower-bullet' && !checkTankCollisionWithBullet(x, y)) ||
-            (bulletType === 'tank-bullet' && !isPointInPolygon([x, y], octaVertices))) {
+            (bulletType === 'tank-bullet' && !checkTowerCollisionWithBullet([x, y], octaVertices))) {
             requestAnimationFrame(animateBullet);
         } else {
             bullet.remove();
@@ -97,6 +97,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     requestAnimationFrame(animateBullet);
+  }
+
+  function rotateGunTowards(targetX, targetY) {
+    const gun = document.getElementById('gun-image');
+    const turret = document.getElementById('turret');
+    const turretRect = turret.getBoundingClientRect();
+    const mapRect = map.getBoundingClientRect();
+    const turretCenterX = turretRect.left - mapRect.left + 24;
+    const turretCenterY = turretRect.top - mapRect.top + 24;
+
+    displayVertices([[turretCenterX, turretCenterY], [targetX, targetY]], 3);
+
+    const deltaX = targetX - turretCenterX;
+    const deltaY = targetY - turretCenterY;
+    const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+
+    gun.style.transform = `rotate(${angle}deg)`;
 }
 
   function isWithinRange() {
@@ -123,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return bulletX >= tankLeft && bulletX <= tankRight && bulletY >= tankTop && bulletY <= tankBottom;
   }
 
-  function isPointInPolygon(point, polygon) {
+  function checkTowerCollisionWithBullet(point, polygon) {
     let x = point[0], y = point[1];
 
     let inside = false;
