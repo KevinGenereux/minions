@@ -67,11 +67,21 @@ img {
 }
 
 #tank-image {
+  position:absolute;
   width: 32px;
   height: 23px;
   transform-origin: center center; /* For rotating the tank */
   z-index: 10;
 }
+
+/* #shouty-frame {
+  position: relative;;
+  width: 34px;
+  height: 34px;
+  top: -5px;
+  left: -40px;
+  z-index: 1;
+} */
 
 .bullet {
   position: absolute;
@@ -90,4 +100,21 @@ img {
   width: 5px;
   height: 5px;
   z-index: 5;
+}
+
+.hp-bar {
+  position: absolute;
+  width: 30px;
+  height: 5px;
+  /* border: 1px solid #000; */
+  background-color: red;
+  top: -12px;
+  left: 0px;
+  z-index: 20;
+}
+
+.hp-bar-inner {
+  height: 100%;
+  background-color: rgb(15, 131, 15);
+  width: 100%;
 }

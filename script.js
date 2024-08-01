@@ -4,16 +4,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankImage = document.getElementById('tank-image');
   const frame = document.getElementById('frame');
   const turret = document.getElementById('turret');
+  const gun = document.getElementById('gun-image');
+  const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
+  const turretHPBar = document.getElementById('turret-hp').querySelector('.hp-bar-inner');
   const tankSpeed = 4;
   const tankFireInterval = 500;
   const tankFireRange = 150;
   const turretFireInterval = 1000;
   const turretFireRange = 250;
-  const gun = document.getElementById('gun-image');
+  const turretHP = 500;
+  const tankHP = 200;
+  let tankCurrentHP = tankHP;
+  let turretCurrentHP = turretHP;
   let tankX = 50; // Starting X position
   let tankY = map.offsetHeight - 80; // Starting Y position
   let targetX = tankX;
   let targetY = tankY;
+  let tankRotation = 0;
+  let shoutyFrameRotation = 0;
 
   function moveTank() {
     const deltaX = targetX - tankX;
@@ -53,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return vertices;
   }
-
 
   function fireBullet(startX, startY, targetX, targetY, bulletType) {
     const bullet = document.createElement('div');
@@ -96,14 +103,68 @@ document.addEventListener('DOMContentLoaded', () => {
             requestAnimationFrame(animateBullet);
         } else {
             bullet.remove();
+            if (bulletType === 'tower-bullet' && checkTankCollisionWithBullet(x, y)) {
+                takeDamage('tank', 30);
+            }
+            if (bulletType === 'tank-bullet' && checkTowerCollisionWithBullet([x, y], octaVertices)) {
+                takeDamage('turret', 10);
+            }
         }
     }
 
     requestAnimationFrame(animateBullet);
   }
 
+  function rotateElement(element, targetAngle, speed, callback) {
+    const startAngle = parseFloat(element.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
+    const deltaAngle = targetAngle - startAngle;
+    const duration = Math.abs(deltaAngle) / speed;
+    let startTime = null;
+
+    function animateRotation(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const angle = startAngle + deltaAngle * progress;
+      element.style.transform = `rotate(${angle}rad)`;
+
+      if (progress < 1) {
+        requestAnimationFrame(animateRotation);
+      } else if (callback) {
+        callback();
+      }
+    }
+
+    requestAnimationFrame(animateRotation);
+  }
+
+  function takeDamage(target, damage) {
+    if (target === 'tank') {
+      tankCurrentHP -= damage;
+      const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
+      tankHPBar.style.width = `${hpPercentage}%`;
+      if (tankCurrentHP <= 0) {
+        respawnTank();
+      }
+    } else if (target === 'turret') {
+      turretCurrentHP -= damage;
+      const hpPercentage = Math.max(turretCurrentHP / turretHP, 0) * 100;
+      turretHPBar.style.width = `${hpPercentage}%`;
+      // Handle turret destruction if needed
+    }
+  }
+
+  function respawnTank() {
+    tankCurrentHP = tankHP;
+    tankHPBar.style.width = '100%';
+    tankX = 50;
+    tankY = map.offsetHeight - 80;
+    targetX = tankX;
+    targetY = tankY;
+  }
+
   function rotateGun() {
-    if (isWithinRange()) {
+    if (isWithinRange(turretFireRange)) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
       const tankCenterY = tankY + tankImage.offsetHeight / 2;
       const gunCenterX = turret.offsetLeft + 19; // Center X of the gun image
@@ -200,6 +261,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const tankRect = tankImage.getBoundingClientRect();
     targetX = e.clientX - mapRect.left - tankRect.width / 2;
     targetY = e.clientY - mapRect.top - tankRect.height / 2;
+
+    const deltaX = targetX - tankX;
+    const deltaY = targetY - tankY;
+    const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+
+    rotateElement(tankImage, targetAngle, 0.05, () => {
+      rotateElement(document.getElementById('shouty-frame'), targetAngle, 0.05);
+    });
+  });
+
+  map.addEventListener('mousedown', (e) => {
+    e.preventDefault(); // Prevent text selection - Add this line
   });
 
   tank.style.left = `${tankX}px`;
