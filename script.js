@@ -5,8 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const frame = document.getElementById('frame');
   const turret = document.getElementById('turret');
   const tankSpeed = 4;
-  const fireInterval = 500; // Fire bullet every 500ms
-  const fireRange = 100; // Range within which the tank can fire
+  const tankFireInterval = 500;
+  const tankFireRange = 150;
+  const turretFireInterval = 1000;
+  const turretFireRange = 250;
+  const gun = document.getElementById('gun-image');
   let tankX = 50; // Starting X position
   let tankY = map.offsetHeight - 80; // Starting Y position
   let targetX = tankX;
@@ -99,24 +102,24 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(animateBullet);
   }
 
-  function rotateGunTowards(targetX, targetY) {
-    const gun = document.getElementById('gun-image');
-    const turret = document.getElementById('turret');
-    const turretRect = turret.getBoundingClientRect();
-    const mapRect = map.getBoundingClientRect();
-    const turretCenterX = turretRect.left - mapRect.left + 24;
-    const turretCenterY = turretRect.top - mapRect.top + 24;
+  function rotateGun() {
+    if (isWithinRange()) {
+      const tankCenterX = tankX + tankImage.offsetWidth / 2;
+      const tankCenterY = tankY + tankImage.offsetHeight / 2;
+      const gunCenterX = turret.offsetLeft + 19; // Center X of the gun image
+      const gunCenterY = turret.offsetTop + 19; // Center Y of the gun image
 
-    displayVertices([[turretCenterX, turretCenterY], [targetX, targetY]], 3);
+      const deltaX = tankCenterX - gunCenterX;
+      const deltaY = tankCenterY - gunCenterY;
+      const angle = Math.atan2(deltaY, deltaX);
 
-    const deltaX = targetX - turretCenterX;
-    const deltaY = targetY - turretCenterY;
-    const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+      gun.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
+    }
 
-    gun.style.transform = `rotate(${angle}deg)`;
-}
+    requestAnimationFrame(rotateGun);
+  }
 
-  function isWithinRange() {
+  function isWithinRange(fireRange) {
     const tankCenterX = tankX + tankImage.offsetWidth / 2;
     const tankCenterY = tankY + tankImage.offsetHeight / 2;
     const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
@@ -173,15 +176,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setInterval(() => {
-    if (isWithinRange()) {
+    if (isWithinRange(tankFireRange)) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
       const tankCenterY = tankY + tankImage.offsetHeight / 2;
       const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
       const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
       fireBullet(tankCenterX, tankCenterY, turretCenterX, turretCenterY, 'tank-bullet');
+    }
+  }, tankFireInterval);
+
+  setInterval(() => {
+    if (isWithinRange(turretFireRange)) {
+      const tankCenterX = tankX + tankImage.offsetWidth / 2;
+      const tankCenterY = tankY + tankImage.offsetHeight / 2;
+      const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+      const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
       fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
     }
-  }, fireInterval);
+  }, turretFireInterval);
 
   map.addEventListener('click', (e) => {
     const mapRect = map.getBoundingClientRect();
@@ -197,4 +209,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // displayVertices(octaVertices, 3)
 
   moveTank();
+  rotateGun();
 });
