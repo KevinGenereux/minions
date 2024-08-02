@@ -7,17 +7,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const gun = document.getElementById('gun-image');
   const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
   const turretHPBar = document.getElementById('turret-hp').querySelector('.hp-bar-inner');
-  const tankSpeed = 4;
-  const tankFireInterval = 500;
-  const tankFireRange = 150;
-  const turretFireInterval = 1000;
-  const turretFireRange = 250;
-  const turretHP = 500;
-  const tankHP = 200;
+  const tankSpeed = 0.5;
+  const tankFireInterval = 2000;
+  const tankFireRange = 100;
+  const turretFireInterval = 2000;
+  const turretFireRange = 120;
+  const turretHP = 400;
+  const tankHP = 100;
   let tankCurrentHP = tankHP;
   let turretCurrentHP = turretHP;
-  let tankX = 50; // Starting X position
-  let tankY = map.offsetHeight - 80; // Starting Y position
+  let tankX = 200; // Starting X position
+  let tankY = map.offsetHeight - 30; // Starting Y position
   let targetX = tankX;
   let targetY = tankY;
   let tankRotation = 0;
@@ -157,8 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function respawnTank() {
     tankCurrentHP = tankHP;
     tankHPBar.style.width = '100%';
-    tankX = 50;
-    tankY = map.offsetHeight - 80;
+    tankX = 200;
+    tankY = map.offsetHeight - 30;
     targetX = tankX;
     targetY = tankY;
   }
@@ -265,10 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deltaX = targetX - tankX;
     const deltaY = targetY - tankY;
     const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-
-    rotateElement(tankImage, targetAngle, 0.05, () => {
-      rotateElement(document.getElementById('shouty-frame'), targetAngle, 0.05);
-    });
+    rotateElement(tankImage, targetAngle, 0.002);
   });
 
   map.addEventListener('mousedown', (e) => {
