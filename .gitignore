@@ -1,5 +1,20 @@
 /backups
 /flash files
-/imgs
 /python scripts
 backup_javascript
+.vscode/settings.json
+testing/bullet.js
+testing/index.html
+testing/main.js
+testing/style.css
+testing/tank.js
+testing/turret.js
+testing/utilities.js
+testing/imgs/blue-gun.png
+testing/imgs/blue-turret.png
+testing/imgs/map.png
+testing/imgs/minion-stats.jpg
+testing/imgs/red-gun.png
+testing/imgs/red-shouty.png
+testing/imgs/red-turret.png
+testing/imgs/shouty-frame.png

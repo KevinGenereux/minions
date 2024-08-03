@@ -2,12 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const map = document.getElementById('map');
   const tank = document.getElementById('tank');
   const tankImage = document.getElementById('tank-image');
+  const frameImage = document.getElementById('frame-image');
   const frame = document.getElementById('frame');
   const turret = document.getElementById('turret');
   const gun = document.getElementById('gun-image');
   const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
   const turretHPBar = document.getElementById('turret-hp').querySelector('.hp-bar-inner');
   const tankSpeed = 0.5;
+  const tankRotationSpeed = 0.005;
+  const frameRotationSpeed = 0.005;
   const tankFireInterval = 2000;
   const tankFireRange = 100;
   const turretFireInterval = 2000;
@@ -21,24 +24,34 @@ document.addEventListener('DOMContentLoaded', () => {
   let targetX = tankX;
   let targetY = tankY;
   let tankRotation = 0;
-  let shoutyFrameRotation = 0;
+  let isRotating = false;
+  let isMoving = false;
+  let originalGunRotation = 0;
 
   function moveTank() {
-    const deltaX = targetX - tankX;
-    const deltaY = targetY - tankY;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (!isRotating && isMoving) {
+      const deltaX = targetX - tankX;
+      const deltaY = targetY - tankY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-    if (distance > tankSpeed) {
-      tankX += (deltaX / distance) * tankSpeed;
-      tankY += (deltaY / distance) * tankSpeed;
-    } else {
-      tankX = targetX;
-      tankY = targetY;
+      if (distance > tankSpeed) {
+        tankX += (deltaX / distance) * tankSpeed;
+        tankY += (deltaY / distance) * tankSpeed;
+      } else {
+        tankX = targetX;
+        tankY = targetY;
+        isMoving = false;
+      }
+
+      tank.style.left = `${tankX}px`;
+      tank.style.top = `${tankY}px`;
     }
 
-    tank.style.left = `${tankX}px`;
-    tank.style.top = `${tankY}px`;
+    updateCameraPosition();
+    requestAnimationFrame(moveTank);
+  }
 
+  function updateCameraPosition() {
     let newScrollTop = tankY - frame.clientHeight / 2 + tank.offsetHeight / 2;
     if (newScrollTop < 0) {
       newScrollTop = 0;
@@ -46,18 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
       newScrollTop = map.offsetHeight - frame.clientHeight;
     }
     frame.scrollTop = newScrollTop;
-
-    requestAnimationFrame(moveTank);
   }
 
   function calculateOctagonVertices(sideLength, centerX, centerY) {
     const radius = sideLength / 2 * (1 + Math.sqrt(2));
     const vertices = [];
     for (let i = 0; i < 8; i++) {
-        const angle = -Math.PI / 8 + Math.PI / 4 * i;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-        vertices.push([x, y]);
+      const angle = -Math.PI / 8 + Math.PI / 4 * i;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      vertices.push([x, y]);
     }
     return vertices;
   }
@@ -75,41 +86,41 @@ document.addEventListener('DOMContentLoaded', () => {
     let startTime = null;
 
     function animateBullet(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
 
-        let currentTargetX = targetX;
-        let currentTargetY = targetY;
+      let currentTargetX = targetX;
+      let currentTargetY = targetY;
 
-        if (bulletType === 'tower-bullet') {
-            currentTargetX = tankX + tankImage.offsetWidth / 2;
-            currentTargetY = tankY + tankImage.offsetHeight / 2;
+      if (bulletType === 'tower-bullet') {
+        currentTargetX = tankX + tankImage.offsetWidth / 2;
+        currentTargetY = tankY + tankImage.offsetHeight / 2;
+      }
+
+      const deltaX = currentTargetX - startX;
+      const deltaY = currentTargetY - startY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const duration = distance / bulletSpeed;
+      const progress = Math.min(elapsed / (duration * 100), 1);
+
+      let x = startX + (deltaX * progress);
+      let y = startY + (deltaY * progress);
+
+      bullet.style.left = `${x}px`;
+      bullet.style.top = `${y}px`;
+
+      if ((bulletType === 'tower-bullet' && !checkTankCollisionWithBullet(x, y)) ||
+          (bulletType === 'tank-bullet' && !checkTowerCollisionWithBullet([x, y], octaVertices))) {
+        requestAnimationFrame(animateBullet);
+      } else {
+        bullet.remove();
+        if (bulletType === 'tower-bullet' && checkTankCollisionWithBullet(x, y)) {
+          takeDamage('tank', 30);
         }
-
-        const deltaX = currentTargetX - startX;
-        const deltaY = currentTargetY - startY;
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const duration = distance / bulletSpeed;
-        const progress = Math.min(elapsed / (duration * 100), 1);
-
-        let x = startX + (deltaX * progress);
-        let y = startY + (deltaY * progress);
-
-        bullet.style.left = `${x}px`;
-        bullet.style.top = `${y}px`;
-
-        if ((bulletType === 'tower-bullet' && !checkTankCollisionWithBullet(x, y)) ||
-            (bulletType === 'tank-bullet' && !checkTowerCollisionWithBullet([x, y], octaVertices))) {
-            requestAnimationFrame(animateBullet);
-        } else {
-            bullet.remove();
-            if (bulletType === 'tower-bullet' && checkTankCollisionWithBullet(x, y)) {
-                takeDamage('tank', 30);
-            }
-            if (bulletType === 'tank-bullet' && checkTowerCollisionWithBullet([x, y], octaVertices)) {
-                takeDamage('turret', 10);
-            }
+        if (bulletType === 'tank-bullet' && checkTowerCollisionWithBullet([x, y], octaVertices)) {
+          takeDamage('turret', 10);
         }
+      }
     }
 
     requestAnimationFrame(animateBullet);
@@ -138,6 +149,18 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(animateRotation);
   }
 
+  function rotateTankAndFrame(targetAngle) {
+    isRotating = true;
+    rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
+      setTimeout(() => {
+        rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
+          isRotating = false;
+          isMoving = true;
+        });
+      }, 50); // Delay frame rotation by 100ms
+    });
+  }
+
   function takeDamage(target, damage) {
     if (target === 'tank') {
       tankCurrentHP -= damage;
@@ -161,6 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
     tankY = map.offsetHeight - 30;
     targetX = tankX;
     targetY = tankY;
+    tankImage.style.transform = `rotate(${tankRotation}rad)`;
+    frameImage.style.transform = `rotate(${tankRotation}rad)`;
+    updateCameraPosition();
   }
 
   function rotateGun() {
@@ -175,6 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const angle = Math.atan2(deltaY, deltaX);
 
       gun.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
+    } else {
+      gun.style.transform = `rotate(${originalGunRotation}rad)`;
     }
 
     requestAnimationFrame(rotateGun);
@@ -209,30 +237,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        let xi = polygon[i][0], yi = polygon[i][1];
-        let xj = polygon[j][0], yj = polygon[j][1];
+      let xi = polygon[i][0], yi = polygon[i][1];
+      let xj = polygon[j][0], yj = polygon[j][1];
 
-        let intersect = ((yi > y) != (yj > y))
-            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-        if (intersect) inside = !inside;
+      let intersect = ((yi > y) != (yj > y))
+          && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
     }
 
     return inside;
-}
+  }
 
   function displayVertices(vertices, size) {
     const map = document.getElementById('map');
     vertices.forEach(vertex => {
-        const dot = document.createElement('div');
-        dot.classList.add('dot');
-        dot.style.width = `${size}px`;
-        dot.style.height = `${size}px`;
-        dot.style.backgroundColor = 'red';
-        dot.style.position = 'absolute';
-        dot.style.left = `${vertex[0]}px`;
-        dot.style.top = `${vertex[1]}px`;
-        dot.style.zIndex = 1000;
-        map.appendChild(dot);
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      dot.style.width = `${size}px`;
+      dot.style.height = `${size}px`;
+      dot.style.backgroundColor = 'red';
+      dot.style.position = 'absolute';
+      dot.style.left = `${vertex[0]}px`;
+      dot.style.top = `${vertex[1]}px`;
+      dot.style.zIndex = 1000;
+      map.appendChild(dot);
     });
   }
 
@@ -265,11 +293,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const deltaX = targetX - tankX;
     const deltaY = targetY - tankY;
     const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-    rotateElement(tankImage, targetAngle, 0.002);
+    rotateTankAndFrame(targetAngle);
   });
 
   map.addEventListener('mousedown', (e) => {
-    e.preventDefault(); // Prevent text selection - Add this line
+    e.preventDefault(); // Prevent text selection
+  });
+
+  // Prevent the blinking cursor effect
+  document.addEventListener('mousedown', (e) => {
+    e.preventDefault();
   });
 
   tank.style.left = `${tankX}px`;
@@ -277,6 +310,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const octaVertices = calculateOctagonVertices(13, 135+19, 365);
   // displayVertices(octaVertices, 3)
+
+  // Store the original gun rotation
+  originalGunRotation = parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
+
+  // Initialize the camera position
+  updateCameraPosition();
 
   moveTank();
   rotateGun();
