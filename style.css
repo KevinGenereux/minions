@@ -18,20 +18,30 @@ img {
   -webkit-user-drag: none;
 }
 
+#container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 #frame {
-  position: absolute;
-  width: 540px;
-  height: 400px;
+  position: relative;
+  width: 560px;
+  height: 280px;
   overflow: hidden;
+}
+
+#tank-stats {
+  width: 100%;
+  height: 120px;
 }
 
 #map {
   position: relative;
   width: 100%; /* Assuming the map is larger */
-  height: 880px; /* Assuming the map is larger */
+  height: 920px; /* Assuming the map is larger */
   background-image: url('imgs/map.png');
   background-size: cover;
-  /* background-repeat: no-repeat; */
 }
 
 #turret {
@@ -115,3 +125,15 @@ img {
   background-color: rgb(15, 131, 15);
   width: 100%;
 }
+
+#username {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  color: darkblue;
+  font-weight: bold;
+  font-size: 8px;
+  z-index: 20;
+}
+
+
