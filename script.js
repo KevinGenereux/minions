@@ -128,26 +128,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function rotateElement(element, targetAngle, speed, callback) {
     const startAngle = parseFloat(element.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
-    const deltaAngle = targetAngle - startAngle;
+  
+    // Calculate the shortest rotation direction
+    let deltaAngle = targetAngle - startAngle;
+    if (deltaAngle > Math.PI) {
+      deltaAngle -= 2 * Math.PI;
+    } else if (deltaAngle < -Math.PI) {
+      deltaAngle += 2 * Math.PI;
+    }
+  
     const duration = Math.abs(deltaAngle) / speed;
     let startTime = null;
-
+  
     function animateRotation(timestamp) {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const angle = startAngle + deltaAngle * progress;
       element.style.transform = `rotate(${angle}rad)`;
-
+  
       if (progress < 1) {
         requestAnimationFrame(animateRotation);
       } else if (callback) {
         callback();
       }
     }
-
+  
     requestAnimationFrame(animateRotation);
   }
+  
 
   function rotateTankAndFrame(targetAngle) {
     isRotating = true;
@@ -174,6 +183,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const hpPercentage = Math.max(turretCurrentHP / turretHP, 0) * 100;
       turretHPBar.style.width = `${hpPercentage}%`;
       // Handle turret destruction if needed
+      if (turretCurrentHP <= 0) {
+        turret.remove();
+        gun.remove();
+      }
     }
   }
 
@@ -264,6 +277,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function regenerateHealth() {
+    if (tankCurrentHP < tankHP) {
+      tankCurrentHP = Math.min(tankCurrentHP + tankHealthRegeneration, tankHP);
+      const hpPercentage = (tankCurrentHP / tankHP) * 100;
+      tankHPBar.style.width = `${hpPercentage}%`;
+    }
+  }
+
   setInterval(() => {
     if (isWithinRange(tankFireRange)) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
@@ -284,6 +305,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, turretFireInterval);
 
+  setInterval(regenerateHealth, 1000);
+
   map.addEventListener('click', (e) => {
     const mapRect = map.getBoundingClientRect();
     const tankRect = tankImage.getBoundingClientRect();
@@ -303,6 +326,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Prevent the blinking cursor effect
   document.addEventListener('mousedown', (e) => {
     e.preventDefault();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      isMoving = false;
+      targetX = tankX;
+      targetY = tankY;
+    }
   });
 
   tank.style.left = `${tankX}px`;
