@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const gun = document.getElementById('gun-image');
   const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
   const turretHPBar = document.getElementById('turret-hp').querySelector('.hp-bar-inner');
+  const username = document.getElementById('username');
   const tankSpeed = 0.5;
   const tankRotationSpeed = 0.005;
   const frameRotationSpeed = 0.005;
@@ -19,14 +20,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankHP = 100;
   let tankCurrentHP = tankHP;
   let turretCurrentHP = turretHP;
-  let tankX = 200; // Starting X position
-  let tankY = map.offsetHeight - 30; // Starting Y position
+  let tankX = 200;
+  let tankY = map.offsetHeight - 30;
   let targetX = tankX;
   let targetY = tankY;
   let tankRotation = 0;
   let isRotating = false;
   let isMoving = false;
   let originalGunRotation = 0;
+  let tankLevel = 1;
+  let tankExp = 0;
+  let tankArmor = 10;
+  let tankHealthRegeneration = 1;
+  let lastHitTime = 0;
+
+  // Create walls
+  const walls = [];
+  for (let i = 1; i <= 4; i++) {
+    const wall = document.getElementById(`wall${i}`);
+    wall.style.left = `${Math.random() * (map.offsetWidth - 100)}px`;
+    wall.style.top = `${Math.random() * (map.offsetHeight - 100)}px`;
+    wall.style.transform = `rotate(${i * 90}deg)`;
+    walls.push(wall);
+  }
 
   function moveTank() {
     if (!isRotating && isMoving) {
@@ -35,11 +51,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
       if (distance > tankSpeed) {
-        tankX += (deltaX / distance) * tankSpeed;
-        tankY += (deltaY / distance) * tankSpeed;
+        const newX = tankX + (deltaX / distance) * tankSpeed;
+        const newY = tankY + (deltaY / distance) * tankSpeed;
+
+        if (!checkCollision(newX, newY)) {
+          tankX = newX;
+          tankY = newY;
+        } else {
+          isMoving = false;
+        }
       } else {
-        tankX = targetX;
-        tankY = targetY;
+        if (!checkCollision(targetX, targetY)) {
+          tankX = targetX;
+          tankY = targetY;
+        }
         isMoving = false;
       }
 
@@ -51,6 +76,41 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(moveTank);
   }
 
+  function checkCollision(x, y) {
+    const tankRect = {
+      left: x,
+      top: y,
+      right: x + tankImage.offsetWidth,
+      bottom: y + tankImage.offsetHeight
+    };
+
+    // Check collision with turret
+    const turretRect = turret.getBoundingClientRect();
+    if (
+      tankRect.left < turretRect.right &&
+      tankRect.right > turretRect.left &&
+      tankRect.top < turretRect.bottom &&
+      tankRect.bottom > turretRect.top
+    ) {
+      return true;
+    }
+
+    // Check collision with walls
+    for (const wall of walls) {
+      const wallRect = wall.getBoundingClientRect();
+      if (
+        tankRect.left < wallRect.right &&
+        tankRect.right > wallRect.left &&
+        tankRect.top < wallRect.bottom &&
+        tankRect.bottom > wallRect.top
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   function updateCameraPosition() {
     let newScrollTop = tankY - frame.clientHeight / 2 + tank.offsetHeight / 2;
     if (newScrollTop < 0) {
@@ -59,18 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
       newScrollTop = map.offsetHeight - frame.clientHeight;
     }
     frame.scrollTop = newScrollTop;
-  }
-
-  function calculateOctagonVertices(sideLength, centerX, centerY) {
-    const radius = sideLength / 2 * (1 + Math.sqrt(2));
-    const vertices = [];
-    for (let i = 0; i < 8; i++) {
-      const angle = -Math.PI / 8 + Math.PI / 4 * i;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      vertices.push([x, y]);
-    }
-    return vertices;
   }
 
   function fireBullet(startX, startY, targetX, targetY, bulletType) {
@@ -116,9 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
         bullet.remove();
         if (bulletType === 'tower-bullet' && checkTankCollisionWithBullet(x, y)) {
           takeDamage('tank', 30);
+          lastHitTime = Date.now();
         }
         if (bulletType === 'tank-bullet' && checkTowerCollisionWithBullet([x, y], octaVertices)) {
-          takeDamage('turret', 10);
+          takeDamage('turret', 10 + (tankLevel - 1) * 2);
+          lastHitTime = Date.now();
         }
       }
     }
@@ -157,13 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
           isRotating = false;
           isMoving = true;
         });
-      }, 50); // Delay frame rotation by 100ms
+      }, 50);
     });
   }
 
   function takeDamage(target, damage) {
     if (target === 'tank') {
-      tankCurrentHP -= damage;
+      const actualDamage = Math.max(damage - tankArmor, 1);
+      tankCurrentHP -= actualDamage;
       const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
       tankHPBar.style.width = `${hpPercentage}%`;
       if (tankCurrentHP <= 0) {
@@ -173,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
       turretCurrentHP -= damage;
       const hpPercentage = Math.max(turretCurrentHP / turretHP, 0) * 100;
       turretHPBar.style.width = `${hpPercentage}%`;
-      // Handle turret destruction if needed
     }
   }
 
@@ -193,8 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isWithinRange(turretFireRange)) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
       const tankCenterY = tankY + tankImage.offsetHeight / 2;
-      const gunCenterX = turret.offsetLeft + 19; // Center X of the gun image
-      const gunCenterY = turret.offsetTop + 19; // Center Y of the gun image
+      const gunCenterX = turret.offsetLeft + 19;
+      const gunCenterY = turret.offsetTop + 19;
 
       const deltaX = tankCenterX - gunCenterX;
       const deltaY = tankCenterY - gunCenterY;
@@ -248,20 +298,35 @@ document.addEventListener('DOMContentLoaded', () => {
     return inside;
   }
 
-  function displayVertices(vertices, size) {
-    const map = document.getElementById('map');
-    vertices.forEach(vertex => {
-      const dot = document.createElement('div');
-      dot.classList.add('dot');
-      dot.style.width = `${size}px`;
-      dot.style.height = `${size}px`;
-      dot.style.backgroundColor = 'red';
-      dot.style.position = 'absolute';
-      dot.style.left = `${vertex[0]}px`;
-      dot.style.top = `${vertex[1]}px`;
-      dot.style.zIndex = 1000;
-      map.appendChild(dot);
-    });
+  function updateExp() {
+    const currentTime = Date.now();
+    if (currentTime - lastHitTime < 1200) {
+      tankExp += 3;
+    } else {
+      tankExp += 1;
+    }
+
+    if (tankExp >= tankLevel * 30) {
+      levelUp();
+    }
+
+    username.textContent = `Player   ${tankLevel}`;
+  }
+
+  function levelUp() {
+    tankLevel++;
+    tankHP += 10;
+    tankCurrentHP = tankHP;
+    tankHPBar.style.width = '100%';
+    tankExp = 0;
+  }
+
+  function regenerateHealth() {
+    if (tankCurrentHP < tankHP) {
+      tankCurrentHP = Math.min(tankCurrentHP + tankHealthRegeneration, tankHP);
+      const hpPercentage = (tankCurrentHP / tankHP) * 100;
+      tankHPBar.style.width = `${hpPercentage}%`;
+    }
   }
 
   setInterval(() => {
@@ -284,6 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, turretFireInterval);
 
+  setInterval(updateExp, 1200);
+  setInterval(regenerateHealth, 1000);
+
   map.addEventListener('click', (e) => {
     const mapRect = map.getBoundingClientRect();
     const tankRect = tankImage.getBoundingClientRect();
@@ -297,26 +365,41 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   map.addEventListener('mousedown', (e) => {
-    e.preventDefault(); // Prevent text selection
+    e.preventDefault();
   });
 
-  // Prevent the blinking cursor effect
   document.addEventListener('mousedown', (e) => {
     e.preventDefault();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      isMoving = false;
+      targetX = tankX;
+      targetY = tankY;
+    }
   });
 
   tank.style.left = `${tankX}px`;
   tank.style.top = `${tankY}px`;
 
   const octaVertices = calculateOctagonVertices(13, 135+19, 365);
-  // displayVertices(octaVertices, 3)
 
-  // Store the original gun rotation
   originalGunRotation = parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
 
-  // Initialize the camera position
   updateCameraPosition();
-
   moveTank();
   rotateGun();
 });
+
+function calculateOctagonVertices(sideLength, centerX, centerY) {
+  const radius = sideLength / 2 * (1 + Math.sqrt(2));
+  const vertices = [];
+  for (let i = 0; i < 8; i++) {
+    const angle = -Math.PI / 8 + Math.PI / 4 * i;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    vertices.push([x, y]);
+  }
+  return vertices;
+}

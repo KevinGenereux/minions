@@ -27,16 +27,15 @@ img {
 
 #map {
   position: relative;
-  width: 100%; /* Assuming the map is larger */
-  height: 880px; /* Assuming the map is larger */
+  width: 100%;
+  height: 880px;
   background-image: url('imgs/map.png');
   background-size: cover;
-  /* background-repeat: no-repeat; */
 }
 
 #turret {
   position: absolute;
-  left: 136.5px; /* Adjust according to your map layout */
+  left: 136.5px;
   bottom: 494px;
   width: 38px;
   height: 38px;
@@ -68,7 +67,7 @@ img {
   position: absolute;
   width: 32px;
   height: 23px;
-  transform-origin: center center; /* For rotating the tank */
+  transform-origin: center center;
   z-index: 10;
 }
 
@@ -77,7 +76,7 @@ img {
   height: 30px;
   top: -3.5px;
   left: -0.5px;
-  z-index: 9; /* Ensures the frame is above the tank */
+  z-index: 9;
 }
 
 .bullet {
@@ -103,7 +102,6 @@ img {
   position: absolute;
   width: 30px;
   height: 5px;
-  /* border: 1px solid #000; */
   background-color: red;
   top: -12px;
   left: 0px;
@@ -114,4 +112,42 @@ img {
   height: 100%;
   background-color: rgb(15, 131, 15);
   width: 100%;
+}
+
+#username {
+  position: absolute;
+  top: -25px;
+  left: 0;
+  color: darkblue;
+  font-weight: bold;
+  font-size: 8px;
+  z-index: 20;
+}
+
+.wall {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background-color: red;
+  z-index: 5;
+}
+
+#wall1 { clip-path: polygon(0 0, 100% 0, 100% 40%, 40% 40%, 40% 100%, 0 100%); }
+#wall2 { clip-path: polygon(0 0, 100% 0, 100% 100%, 60% 100%, 60% 40%, 0 40%); }
+#wall3 { clip-path: polygon(60% 0, 100% 0, 100% 100%, 0 100%, 0 60%, 60% 60%); }
+#wall4 { clip-path: polygon(0 0, 40% 0, 40% 60%, 100% 60%, 100% 100%, 0 100%); }
+
+#stats-bar {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100px;
+  z-index: 30;
+}
+
+#stats-bar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
