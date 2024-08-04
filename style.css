@@ -198,10 +198,102 @@ img {
 
 #shouty-3d {
   position: absolute;
-  width: 30px;
-  height: 23px;
+  width: 80px;
+  height: 80px;
   top: 20px; /* Adjust as needed */
-  left: 90px; /* Adjust as needed */
+  left: 98px; /* Adjust as needed */
   z-index: 100;
+}
+
+#tank-stats-container input {
+  position: absolute;
+  font-size: 9px;
+  font-family: Arial, sans-serif;
+  border: none;
+  outline: none;
+  background: none;
+  z-index: 100;
+  color: black !important;
+}
+
+#skill-item-1 {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  top: 15px; /* Adjust as needed */
+  left: 385px; /* Adjust as needed */
+  z-index: 100;
+}
+
+#skill-item-2 {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  top: 15px; /* Adjust as needed */
+  left: 440px; /* Adjust as needed */
+  z-index: 100;
+}
+
+#skill-item-3 {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  top: 15px; /* Adjust as needed */
+  left: 495px; /* Adjust as needed */
+  z-index: 100;
+}
+
+#shouty-skill-1 {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  top: 13px; /* Adjust as needed */
+  left: 385px; /* Adjust as needed */
+  z-index: 101;
+}
+
+#shouty-skill-2 {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  top: 13px; /* Adjust as needed */
+  left: 440px; /* Adjust as needed */
+  z-index: 101;
+}
+
+#shouty-skill-3 {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  top: 13px; /* Adjust as needed */
+  left: 495px; /* Adjust as needed */
+  z-index: 101;
+}
+
+#upgrade-1 {
+  position: absolute;
+  width: 45px;
+  height: 13.5px;
+  top: 2px;
+  left: 385px;
+  z-index: 101;
+}
+
+#upgrade-2 {
+  position: absolute;
+  width: 45px;
+  height: 13.5px;
+  top: 2px;
+  left: 440px;
+  z-index: 101;
+}
+
+#upgrade-3 {
+  position: absolute;
+  width: 45px;
+  height: 13.5px;
+  top: 2px;
+  left: 495px;
+  z-index: 101;
 }
 
