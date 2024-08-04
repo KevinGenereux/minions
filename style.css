@@ -31,22 +31,17 @@ img {
   overflow: hidden;
 }
 
-#tank-stats {
-  width: 100%;
-  height: 120px;
-}
-
 #map {
   position: relative;
-  width: 100%; /* Assuming the map is larger */
-  height: 920px; /* Assuming the map is larger */
+  width: 100%;
+  height: 920px;
   background-image: url('imgs/map.png');
   background-size: cover;
 }
 
 #turret {
   position: absolute;
-  left: 136.5px; /* Adjust according to your map layout */
+  left: 136.5px;
   bottom: 494px;
   width: 38px;
   height: 38px;
@@ -78,7 +73,7 @@ img {
   position: absolute;
   width: 32px;
   height: 23px;
-  transform-origin: center center; /* For rotating the tank */
+  transform-origin: center center;
   z-index: 10;
 }
 
@@ -87,7 +82,18 @@ img {
   height: 30px;
   top: -3.5px;
   left: -0.5px;
-  z-index: 9; /* Ensures the frame is above the tank */
+  z-index: 9;
+}
+
+#halo {
+  position: absolute;
+  top: -9px;
+  left: -5px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 5px solid rgba(255, 255, 0, 0.5);
+  z-index: 8;
 }
 
 .bullet {
@@ -113,7 +119,6 @@ img {
   position: absolute;
   width: 30px;
   height: 5px;
-  /* border: 1px solid #000; */
   background-color: red;
   top: -12px;
   left: 0px;
@@ -131,9 +136,72 @@ img {
   top: -22px;
   left: 0;
   color: darkblue;
+  font-family: Arial, sans-serif;
   font-weight: bold;
   font-size: 8px;
   z-index: 20;
 }
 
+#tank-stats-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#tank-stats {
+  width: 100%;
+  height: 120px;
+}
+
+#tank-stats-container input {
+  position: absolute;
+  font-size: 9px;
+  font-family: Arial, sans-serif;
+  border: none;
+  outline: none;
+  background: none;
+  z-index: 100;
+  color: black !important;
+}
+
+#health {
+  top: 20px; /* Adjust as needed */
+  left: 200px; /* Adjust as needed */
+}
+
+#experience {
+  top: 34px; /* Adjust as needed */
+  left: 200px; /* Adjust as needed */
+}
+
+#damage {
+  top: 48px; /* Adjust as needed */
+  left: 200px; /* Adjust as needed */
+}
+
+#range {
+  top: 62px; /* Adjust as needed */
+  left: 200px; /* Adjust as needed */
+}
+
+#armor {
+  top: 76px; /* Adjust as needed */
+  left: 200px; /* Adjust as needed */
+}
+
+#speed {
+  top: 90px; /* Adjust as needed */
+  left: 200px; /* Adjust as needed */
+}
+
+#shouty-3d {
+  position: absolute;
+  width: 30px;
+  height: 23px;
+  top: 20px; /* Adjust as needed */
+  left: 90px; /* Adjust as needed */
+  z-index: 100;
+}
 
