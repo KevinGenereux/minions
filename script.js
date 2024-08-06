@@ -29,25 +29,53 @@ document.addEventListener('DOMContentLoaded', () => {
   let isMoving = false;
   let originalGunRotation = 0;
 
+  const walls = [
+    { x1: 108, x2: 200, y1: 733, y2: 765 },
+    { x1: 160, x2: 200, y1: 733, y2: 815 }
+  ];  
+
+  function isCollidingWithWall(tankCenterX, tankCenterY) {
+    for (let wall of walls) {
+      if (
+        tankCenterX >= wall.x1 &&
+        tankCenterX <= wall.x2 &&
+        tankCenterY >= wall.y1 &&
+        tankCenterY <= wall.y2
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function moveTank() {
     if (!isRotating && isMoving) {
       const deltaX = targetX - tankX;
       const deltaY = targetY - tankY;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
+  
       if (distance > tankSpeed) {
-        tankX += (deltaX / distance) * tankSpeed;
-        tankY += (deltaY / distance) * tankSpeed;
+        const newTankX = tankX + (deltaX / distance) * tankSpeed;
+        const newTankY = tankY + (deltaY / distance) * tankSpeed;
+        const tankCenterX = newTankX + tankImage.offsetWidth / 2;
+        const tankCenterY = newTankY + tankImage.offsetHeight / 2;
+  
+        if (!isCollidingWithWall(tankCenterX, tankCenterY)) {
+          tankX = newTankX;
+          tankY = newTankY;
+        } else {
+          isMoving = false;
+        }
       } else {
         tankX = targetX;
         tankY = targetY;
         isMoving = false;
       }
-
+  
       tank.style.left = `${tankX}px`;
       tank.style.top = `${tankY}px`;
     }
-
+  
     updateCameraPosition();
     requestAnimationFrame(moveTank);
   }
