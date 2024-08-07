@@ -8,26 +8,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const gun = document.getElementById('gun-image');
   const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
   const turretHPBar = document.getElementById('turret-hp').querySelector('.hp-bar-inner');
+
+  let tankX = 200; // Starting X position
+  let tankY = map.offsetHeight - 30; // Starting Y position
+  let tankHP = 200;
+  let tankCurrentHP = tankHP;
+  let tankArmor = 0.15;
+  let tankDamage = 10;
+  let turretArmor = 0.10;
+  
   const tankSpeed = 5;
   const tankRotationSpeed = 0.005;
-  const tankHealthRegeneration = 3;
   const frameRotationSpeed = 0.005;
+  const tankHealthRegeneration = 3;
   const tankFireInterval = 2000;
   const tankFireRange = 140;
+
   const turretFireInterval = 2000;
   const turretFireRange = 160;
   const turretHP = 400;
-  const tankHP = 100;
-  let tankCurrentHP = tankHP;
+  const turretDamage = 30;
   let turretCurrentHP = turretHP;
-  let tankX = 200; // Starting X position
-  let tankY = map.offsetHeight - 30; // Starting Y position
+  
   let targetX = tankX;
   let targetY = tankY;
   let tankRotation = 0;
   let isRotating = false;
   let isMoving = false;
   let originalGunRotation = 0;
+
+  let username = "Burty";
+  let tankExp = 0;
+  let tankLevel = 1;
+  let expIncrementInterval = 500; // 1 second
+  const expPerLevel = 10;
+  const expForTurretHit = 3;
+
+  const healthInput = document.getElementById('health-value');
+  const experienceInput = document.getElementById('experience-value');
+  const damageInput = document.getElementById('damage-value');
+  const rangeInput = document.getElementById('range-value');
+  const armorInput = document.getElementById('armor-value');
+  const speedInput = document.getElementById('speed-value');
+  const usernameInput = document.getElementById('username');
+
+  healthInput.textContent = tankHP;
+  experienceInput.textContent = tankExp;
+  damageInput.textContent = tankDamage + " DPS";
+  rangeInput.textContent = tankFireRange + " meters";
+  armorInput.textContent = Math.round(tankArmor*100) + "%";
+  speedInput.textContent = tankSpeed + " kph";
 
   const walls = [
     { x1: 108, x2: 200, y1: 733, y2: 765 },
@@ -144,10 +174,11 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         bullet.remove();
         if (bulletType === 'tower-bullet' && checkTankCollisionWithBullet(x, y)) {
-          takeDamage('tank', 30);
+          takeDamage('tank', tankDamage);
         }
         if (bulletType === 'tank-bullet' && checkTowerCollisionWithBullet([x, y], octaVertices)) {
-          takeDamage('turret', 10);
+          takeDamage('turret', turretDamage);
+          gainExp(expForTurretHit);
         }
       }
     }
@@ -201,14 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function takeDamage(target, damage) {
     if (target === 'tank') {
-      tankCurrentHP -= damage;
-      const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
-      tankHPBar.style.width = `${hpPercentage}%`;
+      tankCurrentHP -= damage * (1 - tankArmor);
+      updateTankHPBar();
       if (tankCurrentHP <= 0) {
         respawnTank();
       }
     } else if (target === 'turret') {
-      turretCurrentHP -= damage;
+      turretCurrentHP -= damage * (1 - turretArmor);
       const hpPercentage = Math.max(turretCurrentHP / turretHP, 0) * 100;
       turretHPBar.style.width = `${hpPercentage}%`;
       // Handle turret destruction if needed
@@ -221,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function respawnTank() {
     tankCurrentHP = tankHP;
-    tankHPBar.style.width = '100%';
+    updateTankHPBar();
     tankX = 200;
     tankY = map.offsetHeight - 30;
     targetX = tankX;
@@ -314,6 +344,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function gainExp(amount) {
+    tankExp += amount;
+    if (tankExp >= expPerLevel) {
+      tankExp -= expPerLevel;
+      levelUp();
+    }
+    experienceInput.textContent = tankExp;
+  }
+  
+  function levelUp() {
+    tankLevel += 1;
+    tankDamage += 2;
+    tankHP += 5;
+    tankCurrentHP += 5;
+    tankArmor += 0.01;
+    updateTankHPBar();
+    healthInput.textContent = tankHP;
+    damageInput.textContent = tankDamage + " DPS";
+    rangeInput.textContent = tankFireRange + " meters";
+    armorInput.textContent = Math.round(tankArmor*100) + "%";
+    speedInput.textContent = tankSpeed + " kph";
+    usernameInput.textContent = username + "\u00A0\u00A0\u00A0" + tankLevel;
+  }
+
+  function updateTankHPBar() {
+    const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
+    tankHPBar.style.width = `${hpPercentage}%`;
+  }
+
+  setInterval(() => {
+    gainExp(1);
+  }, expIncrementInterval);
+
   setInterval(() => {
     if (isWithinRange(tankFireRange)) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
@@ -368,8 +431,8 @@ document.addEventListener('DOMContentLoaded', () => {
   tank.style.left = `${tankX}px`;
   tank.style.top = `${tankY}px`;
 
-  const octaVertices = calculateOctagonVertices(13, 135+19, 365);
-  // displayVertices(octaVertices, 3)
+  const octaVertices = calculateOctagonVertices(18, 142 + 18, map.offsetHeight - 520 - 20);
+  displayVertices(octaVertices, 3)
 
   // Store the original gun rotation
   originalGunRotation = parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
