@@ -145,7 +145,7 @@ img {
 
 #tank-stats-container {
   position: relative;
-  width: 100%;
+  width: 560px; /* Match the width of #frame */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -156,191 +156,66 @@ img {
   height: 120px;
 }
 
-#tank-stats-container label {
+#stats-container {
   position: absolute;
-  font-size: 10px;
-  font-family: Arial, sans-serif;
-  border: none;
-  outline: none;
-  background: none;
-  z-index: 100;
-  color: black !important;
+  top: 17px; /* 20px from the top of tank-stats */
+  left: 200px; /* 200px from the left of tank-stats */
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-#health {
-  top: 20px; /* Adjust as needed */
-  left: 200px; /* Adjust as needed */
-}
-
-#experience {
-  top: 34px; /* Adjust as needed */
-  left: 200px; /* Adjust as needed */
-}
-
-#damage {
-  top: 48px; /* Adjust as needed */
-  left: 200px; /* Adjust as needed */
-}
-
-#range {
-  top: 62px; /* Adjust as needed */
-  left: 200px; /* Adjust as needed */
-}
-
-#armor {
-  top: 76px; /* Adjust as needed */
-  left: 200px; /* Adjust as needed */
-}
-
-#speed {
-  top: 90px; /* Adjust as needed */
-  left: 200px; /* Adjust as needed */
-}
-
-#health-value {
-  top: 20px; /* Adjust as needed */
-  left: 270px; /* Adjust as needed */
-}
-
-#experience-value {
-  top: 34px; /* Adjust as needed */
-  left: 270px; /* Adjust as needed */
-}
-
-#damage-value {
-  top: 48px; /* Adjust as needed */
-  left: 270px; /* Adjust as needed */
-}
-
-#range-value {
-  top: 62px; /* Adjust as needed */
-  left: 270px; /* Adjust as needed */
-}
-
-#armor-value {
-  top: 76px; /* Adjust as needed */
-  left: 270px; /* Adjust as needed */
-}
-
-#speed-value {
-  top: 90px; /* Adjust as needed */
-  left: 270px; /* Adjust as needed */
-}
-
-#shouty-3d {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  top: 20px; /* Adjust as needed */
-  left: 98px; /* Adjust as needed */
-  z-index: 100;
-}
-
-#tank-stats-container input {
-  position: absolute;
+#stats-container label {
   font-size: 9px;
-  font-family: Arial, sans-serif;
-  border: none;
-  outline: none;
-  background: none;
-  z-index: 100;
-  color: black !important;
-}
-
-#skill-item-1 {
-  position: absolute;
-  width: 45px;
-  height: 45px;
-  top: 15px; /* Adjust as needed */
-  left: 385px; /* Adjust as needed */
-  z-index: 100;
-}
-
-#skill-item-2 {
-  position: absolute;
-  width: 45px;
-  height: 45px;
-  top: 15px; /* Adjust as needed */
-  left: 440px; /* Adjust as needed */
-  z-index: 100;
-}
-
-#skill-item-3 {
-  position: absolute;
-  width: 45px;
-  height: 45px;
-  top: 15px; /* Adjust as needed */
-  left: 495px; /* Adjust as needed */
-  z-index: 100;
-}
-
-#shouty-skill-1 {
-  position: absolute;
-  width: 45px;
-  height: 45px;
-  top: 13px; /* Adjust as needed */
-  left: 385px; /* Adjust as needed */
-  z-index: 101;
-}
-
-#shouty-skill-2 {
-  position: absolute;
-  width: 45px;
-  height: 45px;
-  top: 13px; /* Adjust as needed */
-  left: 440px; /* Adjust as needed */
-  z-index: 101;
-}
-
-#shouty-skill-3 {
-  position: absolute;
-  width: 45px;
-  height: 45px;
-  top: 13px; /* Adjust as needed */
-  left: 495px; /* Adjust as needed */
-  z-index: 101;
-}
-
-#upgrade-1 {
-  position: absolute;
-  width: 45px;
-  height: 13.5px;
-  top: 2px;
-  left: 385px;
-  z-index: 101;
-}
-
-#upgrade-2 {
-  position: absolute;
-  width: 45px;
-  height: 13.5px;
-  top: 2px;
-  left: 440px;
-  z-index: 101;
-}
-
-#upgrade-3 {
-  position: absolute;
-  width: 45px;
-  height: 13.5px;
-  top: 2px;
-  left: 495px;
-  z-index: 101;
-}
-
-#skill-description {
-  position: absolute;
-  top: 65px; /* Adjust as needed */
-  left: 385px; /* Adjust as needed */
-  z-index: 101;
-  width: 150px; /* Adjust width as needed */
-  height: auto; /* Allow height to adjust based on content */
-  white-space: normal;
-  overflow: visible;
-  word-wrap: break-word;
-  font-size: 12px; /* Adjust font size as needed */
-  line-height: 1.4; /* Adjust line height for better readability */
   font-family: Arial, sans-serif;
   color: black;
 }
 
+#stats-values-container {
+  position: absolute;
+  top: 17px; /* Align vertically with stats-container */
+  left: 260px; /* Position to the right of stats-container */
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+#health-value,
+#experience-value,
+#damage-value,
+#range-value,
+#armor-value,
+#speed-value {
+  font-size: 10px;
+  font-family: Arial, sans-serif;
+  color: black;
+}
+
+#shouty-3d {
+  width: 80px;
+  height: 80px;
+  margin-top: 10px;
+}
+
+#skill-item-1,
+#skill-item-2,
+#skill-item-3,
+#shouty-skill-1,
+#shouty-skill-2,
+#shouty-skill-3,
+#upgrade-1,
+#upgrade-2,
+#upgrade-3 {
+  width: 45px;
+  height: 45px;
+  margin-top: 10px;
+}
+
+#skill-description {
+  width: 150px;
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  color: black;
+  line-height: 1.4;
+  margin-top: 10px;
+}
