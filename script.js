@@ -54,12 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   damageInput.textContent = tankDamage + " DPS";
   rangeInput.textContent = tankFireRange + " meters";
-  armorInput.textContent = Math.round(tankArmor*100) + "%";
+  armorInput.textContent = Math.round(tankArmor * 100) + "%";
   speedInput.textContent = tankSpeed + " kph";
 
   const walls = [
-    { x1: 108, x2: 200, y1: 733, y2: 765 },
-    { x1: 160, x2: 200, y1: 733, y2: 815 }
+    { x1: 100, x2: 205, y1: 728, y2: 770 },
+    { x1: 150, x2: 205, y1: 728, y2: 825 },
+    { x1: 353, x2: 408, y1: 728, y2: 825 },
+    { x1: 353, x2: 458, y1: 728, y2: 770 },
+    { x1: 100, x2: 205, y1: 143, y2: 198 },
+    { x1: 150, x2: 205, y1: 98,  y2: 198 },
+    { x1: 353, x2: 458, y1: 143, y2: 193 },
+    { x1: 353, x2: 408, y1: 98,  y2: 193 },
   ];  
 
   function isCollidingWithWall(tankCenterX, tankCenterY) {

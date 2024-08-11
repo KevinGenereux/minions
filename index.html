@@ -1,33 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tanks</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="container">
     <div id="frame">
-        <div id="map">
-          <div id="turret">
-            <img id="turret-image" src="imgs/blue-turret.png" alt="Turret">
-            <img id="gun-image" src="imgs/blue-gun.png" alt="Gun">
-            <div id="turret-hp" class="hp-bar">
-              <div class="hp-bar-inner"></div>
-            </div>
+      <div id="map">
+        <div id="turret">
+          <img id="turret-image" src="imgs/blue-turret.png" alt="Turret">
+          <img id="gun-image" src="imgs/blue-gun.png" alt="Gun">
+          <div id="turret-hp" class="hp-bar">
+            <div class="hp-bar-inner"></div>
           </div>
-          <div id="tank">
-            <div id="username">Player&nbsp;&nbsp;&nbsp;1</div>
-            <img id="tank-image" src="imgs/red-shouty.png" alt="Tank">
-            <img id="frame-image" src="imgs/shouty-frame.png" alt="Frame">
-            <div id="halo"></div>
-            <div id="tank-hp" class="hp-bar">
-              <div class="hp-bar-inner"></div>
-            </div>
+        </div>
+        <div id="tank">
+          <div id="username">Player&nbsp;&nbsp;&nbsp;1</div>
+          <img id="tank-image" src="imgs/red-shouty.png" alt="Tank">
+          <img id="frame-image" src="imgs/shouty-frame.png" alt="Frame">
+          <div id="halo"></div>
+          <div id="tank-hp" class="hp-bar">
+            <div class="hp-bar-inner"></div>
           </div>
+        </div>
       </div>
     </div>
     <div id="tank-stats-container">
       <img id="tank-stats" src="imgs/tank-stats.png" alt="Tank Stats">
+      <div id="shouty-3d-container">
+        <label id="username-label">Burty</label>
+        <img id="shouty-3d" src="imgs/red-shouty-3d.png" alt="Shouty 3D">
+        <label id="tank-type-label">Shouty</label>
+      </div>
       <div id="stats-container">
         <label id="health">Health</label>
         <label id="experience">Experience</label>
@@ -49,7 +56,6 @@
         <label id="speed-value">0</label>
       </div>
     </div>
-  </div>
   <script src="script.js"></script>
 </body>
 </html>
