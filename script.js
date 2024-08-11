@@ -389,7 +389,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const tankCenterY = tankY + tankImage.offsetHeight / 2;
       const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
       const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-      fireBullet(tankCenterX, tankCenterY, turretCenterX, turretCenterY, 'tank-bullet');
+
+      const deltaX = turretCenterX - tankX;
+      const deltaY = turretCenterY - tankY;
+      const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+      rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {fireBullet(tankCenterX, tankCenterY, turretCenterX, turretCenterY, 'tank-bullet')});
     }
   }, tankFireInterval);
 
