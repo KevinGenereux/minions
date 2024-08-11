@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const gun = document.getElementById('gun-image');
   const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
   const turretHPBar = document.getElementById('turret-hp').querySelector('.hp-bar-inner');
+  const healthHPBar = document.getElementById('hp-stats-bar').querySelector('.hp-bar-inner');
+  const expBar = document.getElementById('exp-bar').querySelector('.hp-bar-inner');
 
   let tankX = 200; // Starting X position
   let tankY = map.offsetHeight - 30; // Starting Y position
@@ -44,16 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const expPerLevel = 10;
   const expForTurretHit = 3;
 
-  const healthInput = document.getElementById('health-value');
-  const experienceInput = document.getElementById('experience-value');
   const damageInput = document.getElementById('damage-value');
   const rangeInput = document.getElementById('range-value');
   const armorInput = document.getElementById('armor-value');
   const speedInput = document.getElementById('speed-value');
   const usernameInput = document.getElementById('username');
 
-  healthInput.textContent = tankHP;
-  experienceInput.textContent = tankExp;
   damageInput.textContent = tankDamage + " DPS";
   rangeInput.textContent = tankFireRange + " meters";
   armorInput.textContent = Math.round(tankArmor*100) + "%";
@@ -350,7 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
       tankExp -= expPerLevel;
       levelUp();
     }
-    experienceInput.textContent = tankExp;
+    const expPercentage = Math.max((tankExp % expPerLevel) / expPerLevel, 0) * 100;
+    console.log("🚀 ~ gainExp ~ expPercentage:", expPercentage)
+    expBar.style.width = `${expPercentage}%`;
   }
   
   function levelUp() {
@@ -360,7 +360,6 @@ document.addEventListener('DOMContentLoaded', () => {
     tankCurrentHP += 5;
     tankArmor += 0.01;
     updateTankHPBar();
-    healthInput.textContent = tankHP;
     damageInput.textContent = tankDamage + " DPS";
     rangeInput.textContent = tankFireRange + " meters";
     armorInput.textContent = Math.round(tankArmor*100) + "%";
@@ -371,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateTankHPBar() {
     const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
     tankHPBar.style.width = `${hpPercentage}%`;
+    healthHPBar.style.width = `${hpPercentage}%`;
   }
 
   setInterval(() => {

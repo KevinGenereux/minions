@@ -131,6 +131,33 @@ img {
   width: 100%;
 }
 
+#hp-stats-bar-inner {
+  height: 100%;
+  background-color: #00cc00;
+  width: 100%;
+}
+
+#hp-stats-bar {
+  width: 90px; /* Adjust the width as needed */
+  height: 12px; /* Optionally adjust the height */
+  margin-top: -3px;
+  border: 1px solid black;
+}
+
+#exp-bar {
+  width: 90px; /* Adjust the width as needed */
+  height: 7px; /* Optionally adjust the height */
+  margin-top: 15px;
+  background-color: #f9f80b;
+  border: 1px solid black;
+}
+
+#exp-bar-inner {
+  height: 100%;
+  background-color: #0033ff;
+  width: 100%;
+}
+
 #username {
   position: absolute;
   top: -22px;
@@ -165,30 +192,27 @@ img {
   gap: 5px;
 }
 
-#stats-container label {
+#stats-container, #stats-values-container label {
   font-size: 9px;
   font-family: Arial, sans-serif;
   color: black;
 }
 
+#stats-values-container label {
+  font-weight: bold;
+}
+
 #stats-values-container {
   position: absolute;
-  top: 17px; /* Align vertically with stats-container */
+  top: 30px; /* Align vertically with stats-container */
   left: 260px; /* Position to the right of stats-container */
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-#health-value,
-#experience-value,
-#damage-value,
-#range-value,
-#armor-value,
-#speed-value {
-  font-size: 10px;
-  font-family: Arial, sans-serif;
-  color: black;
+#damage-value {
+margin-top: 18px;
 }
 
 #shouty-3d {
