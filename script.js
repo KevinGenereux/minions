@@ -8,12 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const gun = document.getElementById('gun-image');
   const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
   const turretHPBar = document.getElementById('turret-hp').querySelector('.hp-bar-inner');
-  const healthHPBar = document.getElementById('hp-stats-bar').querySelector('.hp-bar-inner');
-  const expBar = document.getElementById('exp-bar').querySelector('.hp-bar-inner');
+  // const healthHPBar = document.getElementById('hp-stats-bar').querySelector('.hp-bar-inner');
+  // const expBar = document.getElementById('exp-bar').querySelector('.hp-bar-inner');
+  const miniMapContainer = document.getElementById('mini-map-container');
+  const scaleFactorX = miniMapContainer.offsetWidth / map.offsetWidth;
+  const scaleFactorY = miniMapContainer.offsetHeight / map.offsetHeight;
 
   let tankX = 200; // Starting X position
   let tankY = map.offsetHeight - 30; // Starting Y position
-  let tankHP = 200;
+  let tankHP = 20;
   let tankCurrentHP = tankHP;
   let tankArmor = 0.15;
   let tankDamage = 10;
@@ -39,23 +42,23 @@ document.addEventListener('DOMContentLoaded', () => {
   let isMoving = false;
   let originalGunRotation = 0;
 
-  let username = "Burty";
+  let username = "howitzer";
   let tankExp = 0;
   let tankLevel = 1;
   let expIncrementInterval = 500; // 1 second
   const expPerLevel = 10;
   const expForTurretHit = 3;
 
-  const damageInput = document.getElementById('damage-value');
-  const rangeInput = document.getElementById('range-value');
-  const armorInput = document.getElementById('armor-value');
-  const speedInput = document.getElementById('speed-value');
+  // const damageInput = document.getElementById('damage-value');
+  // const rangeInput = document.getElementById('range-value');
+  // const armorInput = document.getElementById('armor-value');
+  // const speedInput = document.getElementById('speed-value');
   const usernameInput = document.getElementById('username');
 
-  damageInput.textContent = tankDamage + " DPS";
-  rangeInput.textContent = tankFireRange + " meters";
-  armorInput.textContent = Math.round(tankArmor * 100) + "%";
-  speedInput.textContent = tankSpeed + " kph";
+  // damageInput.textContent = tankDamage + " DPS";
+  // rangeInput.textContent = tankFireRange + " meters";
+  // armorInput.textContent = Math.round(tankArmor * 100) + "%";
+  // speedInput.textContent = tankSpeed + " kph";
 
   const walls = [
     { x1: 100, x2: 205, y1: 728, y2: 770 },
@@ -66,7 +69,48 @@ document.addEventListener('DOMContentLoaded', () => {
     { x1: 150, x2: 205, y1: 98,  y2: 198 },
     { x1: 353, x2: 458, y1: 143, y2: 193 },
     { x1: 353, x2: 408, y1: 98,  y2: 193 },
-  ];  
+  ];
+  
+  function createWallMarker(wall) {
+    const marker = document.createElement('div');
+    marker.className = 'mini-map-wall';
+    marker.style.left = `${wall.x1 * scaleFactorX}px`;
+    marker.style.top = `${wall.y1 * scaleFactorY}px`;
+    marker.style.width = `${(wall.x2 - wall.x1) * scaleFactorX}px`;
+    marker.style.height = `${(wall.y2 - wall.y1) * scaleFactorY}px`;
+    miniMapContainer.appendChild(marker);
+  }
+
+  function createCameraViewMarker() {
+    const marker = document.createElement('div');
+    marker.className = 'mini-map-camera-view';
+    miniMapContainer.appendChild(marker);
+    return marker;
+  }
+
+  function createMarker(classNames, x, y) {
+    const marker = document.createElement('div');
+    marker.className = classNames;
+    marker.style.left = `${x * scaleFactorX}px`;
+    marker.style.top = `${y * scaleFactorY}px`;
+    miniMapContainer.appendChild(marker);
+    return marker;
+  }
+
+  const tankMarker = createMarker('mini-map-tank-turret mini-map-red', tankX, tankY);
+  createMarker('mini-map-tank-turret mini-map-blue', turret.offsetLeft, turret.offsetTop);
+  const cameraViewMarker = createCameraViewMarker();
+  walls.forEach(createWallMarker);
+
+  function updateMiniMap(scrollTop) {
+    tankMarker.style.left = `${tankX * scaleFactorX}px`;
+    tankMarker.style.top = `${tankY * scaleFactorY}px`;
+
+    // cameraViewMarker.style.left = `${(tankX - frame.clientWidth / 2) * scaleFactorX}px`;
+    cameraViewMarker.style.top = `${scrollTop * scaleFactorY}px`;
+    cameraViewMarker.style.width = `${frame.clientWidth * scaleFactorX}px`;
+    cameraViewMarker.style.height = `${frame.clientHeight * scaleFactorY}px`;
+  }
 
   function isCollidingWithWall(tankCenterX, tankCenterY) {
     for (let wall of walls) {
@@ -110,7 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
       tank.style.top = `${tankY}px`;
     }
   
-    updateCameraPosition();
+    scrollTop = updateCameraPosition();
+    updateMiniMap(scrollTop);
     requestAnimationFrame(moveTank);
   }
 
@@ -122,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
       newScrollTop = map.offsetHeight - frame.clientHeight;
     }
     frame.scrollTop = newScrollTop;
+    return newScrollTop;
   }
 
   function calculateOctagonVertices(sideLength, centerX, centerY) {
@@ -193,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function rotateElement(element, targetAngle, speed, callback) {
     const startAngle = parseFloat(element.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
   
-    // Calculate the shortest rotation direction
     let deltaAngle = targetAngle - startAngle;
     if (deltaAngle > Math.PI) {
       deltaAngle -= 2 * Math.PI;
@@ -245,7 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
       turretCurrentHP -= damage * (1 - turretArmor);
       const hpPercentage = Math.max(turretCurrentHP / turretHP, 0) * 100;
       turretHPBar.style.width = `${hpPercentage}%`;
-      // Handle turret destruction if needed
       if (turretCurrentHP <= 0) {
         turret.remove();
         gun.remove();
@@ -355,8 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
       levelUp();
     }
     const expPercentage = Math.max((tankExp % expPerLevel) / expPerLevel, 0) * 100;
-    console.log("🚀 ~ gainExp ~ expPercentage:", expPercentage)
-    expBar.style.width = `${expPercentage}%`;
+    // expBar.style.width = `${expPercentage}%`;
   }
   
   function levelUp() {
@@ -366,17 +409,17 @@ document.addEventListener('DOMContentLoaded', () => {
     tankCurrentHP += 5;
     tankArmor += 0.01;
     updateTankHPBar();
-    damageInput.textContent = tankDamage + " DPS";
-    rangeInput.textContent = tankFireRange + " meters";
-    armorInput.textContent = Math.round(tankArmor*100) + "%";
-    speedInput.textContent = tankSpeed + " kph";
+    // damageInput.textContent = tankDamage + " DPS";
+    // rangeInput.textContent = tankFireRange + " meters";
+    // armorInput.textContent = Math.round(tankArmor*100) + "%";
+    // speedInput.textContent = tankSpeed + " kph";
     usernameInput.textContent = username + "\u00A0\u00A0\u00A0" + tankLevel;
   }
 
   function updateTankHPBar() {
     const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
-    tankHPBar.style.width = `${hpPercentage}%`;
-    healthHPBar.style.width = `${hpPercentage}%`;
+    // tankHPBar.style.width = `${hpPercentage}%`;
+    // healthHPBar.style.width = `${hpPercentage}%`;
   }
 
   setInterval(() => {
@@ -393,7 +436,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const deltaX = turretCenterX - tankX;
       const deltaY = turretCenterY - tankY;
       const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-      rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {fireBullet(tankCenterX, tankCenterY, turretCenterX, turretCenterY, 'tank-bullet')});
+      rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
+        fireBullet(tankCenterX, tankCenterY, turretCenterX, turretCenterY, 'tank-bullet')
+      });
     }
   }, tankFireInterval);
 
@@ -421,8 +466,9 @@ document.addEventListener('DOMContentLoaded', () => {
     rotateTankAndFrame(targetAngle);
   });
 
+  // Prevent text selection when dragging the tank
   map.addEventListener('mousedown', (e) => {
-    e.preventDefault(); // Prevent text selection
+    e.preventDefault(); 
   });
 
   // Prevent the blinking cursor effect
@@ -444,10 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const octaVertices = calculateOctagonVertices(18, 142 + 18, map.offsetHeight - 520 - 20);
   displayVertices(octaVertices, 3)
 
-  // Store the original gun rotation
   originalGunRotation = parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
-
-  // Initialize the camera position
   updateCameraPosition();
 
   moveTank();
