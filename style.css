@@ -127,10 +127,22 @@ img {
 }
 
 #hp-stats-bar {
-  width: 90px; /* Adjust the width as needed */
-  height: 12px; /* Optionally adjust the height */
+  position: relative;
+  width: 90px;
+  height: 12px;
   margin-top: -3px;
   border: 1px solid black;
+}
+
+#hp-value {
+  position: absolute;
+  bottom: -4.5px;
+  left: 2px;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 9px;
+  font-family: Arial, sans-serif;
+  z-index: 1;
 }
 
 #exp-bar {
@@ -242,11 +254,22 @@ img {
   flex-direction: column;
   margin-top: 29px;
   margin-left: 20px;
-  gap: 15px;
+  align-items: flex-start;
 }
 
 #stats-values-container label {
   font-weight: bold;
+  margin-top: 10px;
+  margin-left: -1px;
+  font-size: 9px;
+}
+
+#damage{
+  margin-top: -5px;
+}
+
+#damage-value{
+  margin-top: 8px !important;
 }
 
 #username-label {

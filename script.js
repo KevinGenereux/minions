@@ -106,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
     tankMarker.style.left = `${tankX * scaleFactorX}px`;
     tankMarker.style.top = `${tankY * scaleFactorY}px`;
 
-    // cameraViewMarker.style.left = `${(tankX - frame.clientWidth / 2) * scaleFactorX}px`;
     cameraViewMarker.style.top = `${scrollTop * scaleFactorY}px`;
     cameraViewMarker.style.width = `${frame.clientWidth * scaleFactorX}px`;
     cameraViewMarker.style.height = `${frame.clientHeight * scaleFactorY}px`;
@@ -424,6 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
     tankHPBar.style.width = `${hpPercentage}%`;
     healthHPBar.style.width = `${hpPercentage}%`;
+    document.getElementById('hp-value').textContent = `${Math.round(tankCurrentHP)}/${tankHP}`;
   }
 
   setInterval(() => {
@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, tankFireInterval);
 
-  turrets.forEach((turret, index) => {
+  turrets.forEach((turret) => {
     setInterval(() => {
       if (isWithinRange(turretFireRange, turret)) {
         const tankCenterX = tankX + tankImage.offsetWidth / 2;
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
   tank.style.top = `${tankY}px`;
 
   const octaVertices = calculateOctagonVertices(18, 142 + 18, map.offsetHeight - 520 - 20);
-  displayVertices(octaVertices, 3)
+  // displayVertices(octaVertices, 3)
 
   originalGunRotations.forEach((originalGunRotation, index) => {
     rotateGun(guns[index], turrets[index], originalGunRotation);
