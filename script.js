@@ -4,12 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankImage = document.getElementById('tank-image');
   const frameImage = document.getElementById('frame-image');
   const frame = document.getElementById('frame');
-  const turret = document.getElementById('turret');
-  const gun = document.getElementById('gun-image');
+  const turrets = document.querySelectorAll('.turret');
+  const guns = document.querySelectorAll('.gun-image');
   const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
-  const turretHPBar = document.getElementById('turret-hp').querySelector('.hp-bar-inner');
-  // const healthHPBar = document.getElementById('hp-stats-bar').querySelector('.hp-bar-inner');
-  // const expBar = document.getElementById('exp-bar').querySelector('.hp-bar-inner');
+  const turretHPBars = document.querySelectorAll('.turret-hp .hp-bar-inner');
+  const healthHPBar = document.getElementById('hp-stats-bar').querySelector('.hp-bar-inner');
+  const expBar = document.getElementById('exp-bar').querySelector('.hp-bar-inner');
   const miniMapContainer = document.getElementById('mini-map-container');
   const scaleFactorX = miniMapContainer.offsetWidth / map.offsetWidth;
   const scaleFactorY = miniMapContainer.offsetHeight / map.offsetHeight;
@@ -33,14 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const turretFireRange = 160;
   const turretHP = 400;
   const turretDamage = 30;
-  let turretCurrentHP = turretHP;
+  let turretCurrentHPs = Array.from(turrets).map(() => turretHP);
   
   let targetX = tankX;
   let targetY = tankY;
   let tankRotation = 0;
   let isRotating = false;
   let isMoving = false;
-  let originalGunRotation = 0;
+  let originalGunRotations = Array.from(guns).map(gun => parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0);
 
   let username = "howitzer";
   let tankExp = 0;
@@ -49,16 +49,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const expPerLevel = 10;
   const expForTurretHit = 3;
 
-  // const damageInput = document.getElementById('damage-value');
-  // const rangeInput = document.getElementById('range-value');
-  // const armorInput = document.getElementById('armor-value');
-  // const speedInput = document.getElementById('speed-value');
+  const damageInput = document.getElementById('damage-value');
+  const rangeInput = document.getElementById('range-value');
+  const armorInput = document.getElementById('armor-value');
+  const speedInput = document.getElementById('speed-value');
   const usernameInput = document.getElementById('username');
 
-  // damageInput.textContent = tankDamage + " DPS";
-  // rangeInput.textContent = tankFireRange + " meters";
-  // armorInput.textContent = Math.round(tankArmor * 100) + "%";
-  // speedInput.textContent = tankSpeed + " kph";
+  damageInput.textContent = tankDamage + " DPS";
+  rangeInput.textContent = tankFireRange + " meters";
+  armorInput.textContent = Math.round(tankArmor * 100) + "%";
+  speedInput.textContent = tankSpeed + " kph";
 
   const walls = [
     { x1: 100, x2: 205, y1: 728, y2: 770 },
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const tankMarker = createMarker('mini-map-tank-turret mini-map-red', tankX, tankY);
-  createMarker('mini-map-tank-turret mini-map-blue', turret.offsetLeft, turret.offsetTop);
+  turrets.forEach(turret => createMarker('mini-map-tank-turret mini-map-blue', turret.offsetLeft, turret.offsetTop));
   const cameraViewMarker = createCameraViewMarker();
   walls.forEach(createWallMarker);
 
@@ -279,38 +279,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function takeDamage(target, damage) {
+  function takeDamage(target, damage, turretIndex = null) {
     if (target === 'tank') {
       tankCurrentHP -= damage * (1 - tankArmor);
       updateTankHPBar();
       if (tankCurrentHP <= 0) {
         respawnTank();
       }
-    } else if (target === 'turret') {
-      turretCurrentHP -= damage * (1 - turretArmor);
-      const hpPercentage = Math.max(turretCurrentHP / turretHP, 0) * 100;
-      turretHPBar.style.width = `${hpPercentage}%`;
-      if (turretCurrentHP <= 0) {
-        turret.remove();
-        gun.remove();
+    } else if (target === 'turret' && turretIndex !== null) {
+      turretCurrentHPs[turretIndex] -= damage * (1 - turretArmor);
+      const hpPercentage = Math.max(turretCurrentHPs[turretIndex] / turretHP, 0) * 100;
+      turretHPBars[turretIndex].style.width = `${hpPercentage}%`;
+      if (turretCurrentHPs[turretIndex] <= 0) {
+        turrets[turretIndex].remove();
+        guns[turretIndex].remove();
       }
     }
   }
 
   function respawnTank() {
-    tankCurrentHP = tankHP;
-    updateTankHPBar();
+    
     tankX = 200;
     tankY = map.offsetHeight - 30;
     targetX = tankX;
     targetY = tankY;
+    tankRotation = 0;
     tankImage.style.transform = `rotate(${tankRotation}rad)`;
     frameImage.style.transform = `rotate(${tankRotation}rad)`;
+    tank.style.left = `${tankX}px`;
+    tank.style.top = `${tankY}px`;
+    tankCurrentHP = tankHP;
+    updateTankHPBar();
     updateCameraPosition();
   }
 
-  function rotateGun() {
-    if (isWithinRange(turretFireRange)) {
+  function rotateGun(gun, turret, originalGunRotation) {
+    if (isWithinRange(turretFireRange, turret)) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
       const tankCenterY = tankY + tankImage.offsetHeight / 2;
       const gunCenterX = turret.offsetLeft + 19; // Center X of the gun image
@@ -325,10 +329,10 @@ document.addEventListener('DOMContentLoaded', () => {
       gun.style.transform = `rotate(${originalGunRotation}rad)`;
     }
 
-    requestAnimationFrame(rotateGun);
+    requestAnimationFrame(() => rotateGun(gun, turret, originalGunRotation));
   }
 
-  function isWithinRange(fireRange) {
+  function isWithinRange(fireRange, turret) {
     const tankCenterX = tankX + tankImage.offsetWidth / 2;
     const tankCenterY = tankY + tankImage.offsetHeight / 2;
     const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
@@ -399,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
       levelUp();
     }
     const expPercentage = Math.max((tankExp % expPerLevel) / expPerLevel, 0) * 100;
-    // expBar.style.width = `${expPercentage}%`;
+    expBar.style.width = `${expPercentage}%`;
   }
   
   function levelUp() {
@@ -409,17 +413,17 @@ document.addEventListener('DOMContentLoaded', () => {
     tankCurrentHP += 5;
     tankArmor += 0.01;
     updateTankHPBar();
-    // damageInput.textContent = tankDamage + " DPS";
-    // rangeInput.textContent = tankFireRange + " meters";
-    // armorInput.textContent = Math.round(tankArmor*100) + "%";
-    // speedInput.textContent = tankSpeed + " kph";
+    damageInput.textContent = tankDamage + " DPS";
+    rangeInput.textContent = tankFireRange + " meters";
+    armorInput.textContent = Math.round(tankArmor*100) + "%";
+    speedInput.textContent = tankSpeed + " kph";
     usernameInput.textContent = username + "\u00A0\u00A0\u00A0" + tankLevel;
   }
 
   function updateTankHPBar() {
     const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
-    // tankHPBar.style.width = `${hpPercentage}%`;
-    // healthHPBar.style.width = `${hpPercentage}%`;
+    tankHPBar.style.width = `${hpPercentage}%`;
+    healthHPBar.style.width = `${hpPercentage}%`;
   }
 
   setInterval(() => {
@@ -427,11 +431,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }, expIncrementInterval);
 
   setInterval(() => {
-    if (isWithinRange(tankFireRange)) {
+    if (isWithinRange(tankFireRange, turrets[0])) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
       const tankCenterY = tankY + tankImage.offsetHeight / 2;
-      const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-      const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+      const turretCenterX = turrets[0].offsetLeft + turrets[0].offsetWidth / 2;
+      const turretCenterY = turrets[0].offsetTop + turrets[0].offsetHeight / 2;
 
       const deltaX = turretCenterX - tankX;
       const deltaY = turretCenterY - tankY;
@@ -442,15 +446,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, tankFireInterval);
 
-  setInterval(() => {
-    if (isWithinRange(turretFireRange)) {
-      const tankCenterX = tankX + tankImage.offsetWidth / 2;
-      const tankCenterY = tankY + tankImage.offsetHeight / 2;
-      const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-      const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-      fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
-    }
-  }, turretFireInterval);
+  turrets.forEach((turret, index) => {
+    setInterval(() => {
+      if (isWithinRange(turretFireRange, turret)) {
+        const tankCenterX = tankX + tankImage.offsetWidth / 2;
+        const tankCenterY = tankY + tankImage.offsetHeight / 2;
+        const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+        const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+        fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
+      }
+    }, turretFireInterval);
+  });
 
   setInterval(regenerateHealth, 1000);
 
@@ -490,9 +496,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const octaVertices = calculateOctagonVertices(18, 142 + 18, map.offsetHeight - 520 - 20);
   displayVertices(octaVertices, 3)
 
-  originalGunRotation = parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
+  originalGunRotations.forEach((originalGunRotation, index) => {
+    rotateGun(guns[index], turrets[index], originalGunRotation);
+  });
+
   updateCameraPosition();
 
   moveTank();
-  rotateGun();
 });
