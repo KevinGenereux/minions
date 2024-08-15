@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let tankX = 200; // Starting X position
   let tankY = map.offsetHeight - 30; // Starting Y position
-  let tankHP = 20;
+  let tankHP = 200;
   let tankCurrentHP = tankHP;
   let tankArmor = 0.15;
   let tankDamage = 10;
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankSpeed = 5;
   const tankRotationSpeed = 0.005;
   const frameRotationSpeed = 0.005;
-  const tankHealthRegeneration = 3;
+  const tankHealthRegeneration = 1;
   const tankFireInterval = 2000;
   const tankFireRange = 140;
 
@@ -98,7 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const tankMarker = createMarker('mini-map-tank-turret mini-map-red', tankX, tankY);
-  turrets.forEach(turret => createMarker('mini-map-tank-turret mini-map-blue', turret.offsetLeft, turret.offsetTop));
+  turrets.forEach(turret => {
+    const turretColor = turret.classList.contains('red') ? 'mini-map-red' : 'mini-map-blue';
+    createMarker(`mini-map-tank-turret ${turretColor}`, turret.offsetLeft, turret.offsetTop);
+  });
   const cameraViewMarker = createCameraViewMarker();
   walls.forEach(createWallMarker);
 
@@ -426,17 +429,42 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('hp-value').textContent = `${Math.round(tankCurrentHP)}/${tankHP}`;
   }
 
+  function findClosestTurret() {
+    let closestTurret = null;
+    let closestDistance = Infinity;
+    const tankCenterX = tankX + tankImage.offsetWidth / 2;
+    const tankCenterY = tankY + tankImage.offsetHeight / 2;
+  
+    turrets.forEach((turret, index) => {
+      if (turretCurrentHPs[index] <= 0) return; // Skip destroyed turrets
+  
+      const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+      const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+      const deltaX = turretCenterX - tankCenterX;
+      const deltaY = turretCenterY - tankCenterY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  
+      if (distance <= tankFireRange && distance < closestDistance) {
+        closestTurret = turret;
+        closestDistance = distance;
+      }
+    });
+  
+    return closestTurret;
+  }
+
   setInterval(() => {
     gainExp(1);
   }, expIncrementInterval);
 
   setInterval(() => {
-    if (isWithinRange(tankFireRange, turrets[0])) {
+    const closestTurret = findClosestTurret();
+    if (closestTurret) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
       const tankCenterY = tankY + tankImage.offsetHeight / 2;
-      const turretCenterX = turrets[0].offsetLeft + turrets[0].offsetWidth / 2;
-      const turretCenterY = turrets[0].offsetTop + turrets[0].offsetHeight / 2;
-
+      const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
+      const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
+  
       const deltaX = turretCenterX - tankX;
       const deltaY = turretCenterY - tankY;
       const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
@@ -501,6 +529,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   updateCameraPosition();
-
   moveTank();
 });
