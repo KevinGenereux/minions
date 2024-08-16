@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const scaleFactorY = miniMapContainer.offsetHeight / map.offsetHeight;
 
   let tankX = 200; // Starting X position
-  let tankY = map.offsetHeight - 30; // Starting Y position
+  let tankY = map.offsetHeight - 400; // Starting Y position
   let tankHP = 200;
   let tankCurrentHP = tankHP;
   let tankArmor = 0.15;
@@ -222,18 +222,33 @@ document.addEventListener('DOMContentLoaded', () => {
       bullet.style.left = `${x}px`;
       bullet.style.top = `${y}px`;
 
-      if ((bulletType === 'tower-bullet' && !checkTankCollisionWithBullet(x, y)) ||
-          (bulletType === 'tank-bullet' && !checkTowerCollisionWithBullet([x, y], octaVertices))) {
+      if (bulletType === 'tower-bullet') {
+        if (tankCurrentHP <= 0) {
+          bullet.remove();
+          return;
+        }
+        if (checkTankCollisionWithBullet(x, y)) {
+          bullet.remove();
+          takeDamage('tank', turretDamage);
+          return;
+        }
+      } else if (bulletType === 'tank-bullet') {
+        let hitTurret = false;
+        turrets.forEach((turret, index) => {
+          if (turretCurrentHPs[index] > 0 && checkTowerCollisionWithBullet([x, y], turretCollisionVertices[turret.id])) {
+            bullet.remove();
+            takeDamage('turret', tankDamage, index);
+            gainExp(expForTurretHit);
+            hitTurret = true;
+          }
+        });
+        if (hitTurret) return;
+      }
+
+      if (progress < 1) {
         requestAnimationFrame(animateBullet);
       } else {
         bullet.remove();
-        if (bulletType === 'tower-bullet' && checkTankCollisionWithBullet(x, y)) {
-          takeDamage('tank', tankDamage);
-        }
-        if (bulletType === 'tank-bullet' && checkTowerCollisionWithBullet([x, y], octaVertices)) {
-          takeDamage('turret', turretDamage);
-          gainExp(expForTurretHit);
-        }
       }
     }
 
@@ -297,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (turretCurrentHPs[turretIndex] <= 0) {
         turrets[turretIndex].remove();
         guns[turretIndex].remove();
+        delete turretCollisionVertices[turrets[turretIndex].id];
       }
     }
   }
@@ -455,6 +471,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return closestTurret;
   }
 
+  const turretCollisionVertices = {};
+  turrets.forEach((turret) => {
+    const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+    const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+    const vertices = calculateOctagonVertices(13, turretCenterX-2, turretCenterY-2);
+    turretCollisionVertices[turret.id] = vertices;
+    displayVertices(vertices, 3);
+  });
+
   setInterval(() => {
     gainExp(1);
   }, expIncrementInterval);
@@ -522,9 +547,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   tank.style.left = `${tankX}px`;
   tank.style.top = `${tankY}px`;
-
-  const octaVertices = calculateOctagonVertices(18, 142 + 18, map.offsetHeight - 520 - 20);
-  displayVertices(octaVertices, 3)
 
   originalGunRotations.forEach((originalGunRotation, index) => {
     rotateGun(guns[index], turrets[index], originalGunRotation);
