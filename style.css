@@ -54,6 +54,10 @@ img {
   z-index: 10;
 }
 
+.gun-image.red{
+  rotate: 270deg;
+}
+
 #tank {
   position: absolute;
   z-index: 10;

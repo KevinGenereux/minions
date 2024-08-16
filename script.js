@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
   const map = document.getElementById('map');
   const tank = document.getElementById('tank');
+  const teamColor = tank.classList.contains('red') ? 'red' : 'blue';
+  const enemyColor = teamColor == 'red' ? 'blue' : 'red';
   const tankImage = document.getElementById('tank-image');
   const frameImage = document.getElementById('frame-image');
   const frame = document.getElementById('frame');
@@ -300,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function respawnTank() {
-    
     tankX = 200;
     tankY = map.offsetHeight - 30;
     targetX = tankX;
@@ -316,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function rotateGun(gun, turret, originalGunRotation) {
-    if (isWithinRange(turretFireRange, turret)) {
+    if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
       const tankCenterX = tankX + tankImage.offsetWidth / 2;
       const tankCenterY = tankY + tankImage.offsetHeight / 2;
       const gunCenterX = turret.offsetLeft + 19; // Center X of the gun image
@@ -436,7 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const tankCenterY = tankY + tankImage.offsetHeight / 2;
   
     turrets.forEach((turret, index) => {
-      if (turretCurrentHPs[index] <= 0) return; // Skip destroyed turrets
+      if (turretCurrentHPs[index] <= 0 || turret.classList.contains(teamColor)) 
+        return;
   
       const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
       const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
@@ -476,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   turrets.forEach((turret) => {
     setInterval(() => {
-      if (isWithinRange(turretFireRange, turret)) {
+      if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
         const tankCenterX = tankX + tankImage.offsetWidth / 2;
         const tankCenterY = tankY + tankImage.offsetHeight / 2;
         const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
@@ -522,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
   tank.style.top = `${tankY}px`;
 
   const octaVertices = calculateOctagonVertices(18, 142 + 18, map.offsetHeight - 520 - 20);
-  // displayVertices(octaVertices, 3)
+  displayVertices(octaVertices, 3)
 
   originalGunRotations.forEach((originalGunRotation, index) => {
     rotateGun(guns[index], turrets[index], originalGunRotation);
