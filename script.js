@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let tankDamage = 10;
   let turretArmor = 0.10;
   
+  const tankType = 'shouty';
   const tankSpeed = 5;
   const tankRotationSpeed = 0.005;
   const frameRotationSpeed = 0.005;
@@ -551,6 +552,24 @@ document.addEventListener('DOMContentLoaded', () => {
   originalGunRotations.forEach((originalGunRotation, index) => {
     rotateGun(guns[index], turrets[index], originalGunRotation);
   });
+
+  if (tankType === 'shouty') {
+    const upgrades = [
+        { id: 'item-1', imageSrc: 'imgs/shouty-skill-1.png' },
+        { id: 'item-2', imageSrc: 'imgs/shouty-skill-2.png' },
+        { id: 'item-3', imageSrc: 'imgs/shouty-skill-3.png' }
+    ];
+
+    upgrades.forEach(upgrade => {
+        const upgradeElement = document.getElementById(upgrade.id);
+        if (upgradeElement) {
+            const imgElement = document.createElement('img');
+            imgElement.src = upgrade.imageSrc;
+            imgElement.classList.add('upgrade-image'); // Maintain the existing styles
+            upgradeElement.appendChild(imgElement);
+        }
+    });
+}
 
   updateCameraPosition();
   moveTank();

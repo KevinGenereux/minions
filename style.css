@@ -288,3 +288,78 @@ img {
   line-height: 1.4;
   margin-top: 10px;
 }
+
+#skills-container{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 160px;
+  height: 100px;
+  margin-left: 40px;
+  ma
+}
+
+#weapons-row {
+  display: flex;
+  flex-direction: row; /* Keep weapon divs in a row */
+  width: 100%;
+}
+
+.weapon{
+  position: relative;
+  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+}
+
+.upgrade-container {
+  width: 46px; /* Same width as .skill */
+  display: flex;
+}
+
+.upgrade-image {
+  width: 100%; /* Ensures the image takes up the full width of its container */
+  height: auto; /* Maintains the aspect ratio */
+}
+
+.item{
+  position: relative;
+  width: 46px;
+  height: 46px;
+  background-image: url('imgs/skill-item.jpg');
+  background-size: cover;
+  display: flex;
+  font-size: 7px;
+  font-family: Arial, sans-serif;
+}
+
+.item-label {
+  position: absolute;
+  color: rgb(255, 255, 255);
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.upgrade-count {
+  position: absolute;
+  color: rgb(248, 7, 7);
+  left: 3px;
+  top: 2px;
+}
+
+#skill-description {
+  flex: display;
+  font-size: 10px;
+  font-family: Arial, sans-serif;
+  color: black;
+  white-space: wrap;
+  margin-top: 3px;
+  /* f
+  line-height: 1.4;
+  margin-top: 10px; */
+}
+
