@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isMoving = false;
   let originalGunRotations = Array.from(guns).map(gun => parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0);
 
-  let username = "howitzer";
+  let username = "Burty";
   let tankExp = 0;
   let tankLevel = 1;
   let expIncrementInterval = 500; // 1 second
@@ -57,11 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const armorInput = document.getElementById('armor-value');
   const speedInput = document.getElementById('speed-value');
   const usernameInput = document.getElementById('username');
+  const usernameLabel = document.getElementById('username-label');
 
   damageInput.textContent = tankDamage + " DPS";
   rangeInput.textContent = tankFireRange + " meters";
   armorInput.textContent = Math.round(tankArmor * 100) + "%";
   speedInput.textContent = tankSpeed + " kph";
+  usernameInput.textContent = username + "\u00A0" + tankLevel;
+  usernameLabel.textContent = username;
 
   const walls = [
     { x1: 100, x2: 205, y1: 728, y2: 770 },
@@ -437,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rangeInput.textContent = tankFireRange + " meters";
     armorInput.textContent = Math.round(tankArmor*100) + "%";
     speedInput.textContent = tankSpeed + " kph";
-    usernameInput.textContent = username + "\u00A0\u00A0\u00A0" + tankLevel;
+    usernameInput.textContent = username + "\u00A0" + tankLevel;
   }
 
   function updateTankHPBar() {
