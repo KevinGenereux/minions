@@ -491,16 +491,18 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(() => {
     const closestTurret = findClosestTurret();
     if (closestTurret) {
-      const tankCenterX = tankX + tankImage.offsetWidth / 2;
-      const tankCenterY = tankY + tankImage.offsetHeight / 2;
+      const tankAngle = parseFloat(tankImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
       const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
       const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
+      const tankTopX = tankX + tankImage.offsetWidth / 2 + Math.sin(tankAngle) * (tankImage.offsetHeight / 2);
+      const tankTopY = tankY + tankImage.offsetHeight / 2 - Math.cos(tankAngle) * (tankImage.offsetHeight / 2);
+      
   
       const deltaX = turretCenterX - tankX;
       const deltaY = turretCenterY - tankY;
       const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
       rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-        fireBullet(tankCenterX, tankCenterY, turretCenterX, turretCenterY, 'tank-bullet')
+        fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet')
       });
     }
   }, tankFireInterval);
