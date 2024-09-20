@@ -497,6 +497,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const [closestTurret, closestDistance] = findClosestTurret();
     if (closestDistance > tankFireRange) {
       isUpperFrameRotating = false;
+      // Get the current rotation angle of the frameImage
+      const frameAngle = parseFloat(frameImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
+      // Rotate the tankImage to match the frameImage angle
+      rotateElement(tankImage, frameAngle, tankRotationSpeed, () => {
+        // Callback after rotation is complete (if needed)
+      });
     }
     if (closestTurret) {
       const tankAngle = parseFloat(tankImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
