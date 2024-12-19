@@ -16,12 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const scaleFactorX = miniMapContainer.offsetWidth / map.offsetWidth;
   const scaleFactorY = miniMapContainer.offsetHeight / map.offsetHeight;
 
-  const frameRate = 40;
-  const frameInterval = 1000 / frameRate;
-  let lastTankFireTime = 0;
-
-  let tankX = 200;
-  let tankY = map.offsetHeight - 400;
+  let tankX = 200; // Starting X position
+  let tankY = map.offsetHeight - 400; // Starting Y position
   let tankHP = 200;
   let tankCurrentHP = tankHP;
   let tankArmor = 0.15;
@@ -29,12 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let turretArmor = 0.10;
   
   const tankType = 'shouty';
-  const tankSpeed = 0.5;
+  const tankSpeed = 5;
   const tankRotationSpeed = 0.005;
   const frameRotationSpeed = 0.005;
   const tankHealthRegeneration = 1;
   const tankFireInterval = 2000;
-  const tankFireRange = 160;
+  const tankFireRange = 140;
 
   const turretFireInterval = 2000;
   const turretFireRange = 160;
@@ -45,8 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let targetX = tankX;
   let targetY = tankY;
   let tankRotation = 0;
-  let isBottomFrameRotating = false;
-  let isUpperFrameRotating = false;
+  let isRotating = false;
   let isMoving = false;
   let originalGunRotations = Array.from(guns).map(gun => parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0);
 
@@ -140,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function moveTank() {
-    if (!isBottomFrameRotating && isMoving) {
+    if (!isRotating && isMoving) {
       const deltaX = targetX - tankX;
       const deltaY = targetY - tankY;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -169,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
     scrollTop = updateCameraPosition();
     updateMiniMap(scrollTop);
-    setTimeout(moveTank, frameInterval);
+    requestAnimationFrame(moveTank);
   }
 
   function updateCameraPosition() {
@@ -296,11 +291,11 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
   function rotateTankAndFrame(targetAngle) {
-    isBottomFrameRotating = true;
+    isRotating = true;
     rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
       setTimeout(() => {
         rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
-          isBottomFrameRotating = false;
+          isRotating = false;
           isMoving = true;
         });
       }, 50); // Delay frame rotation by 100ms
@@ -357,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
       gun.style.transform = `rotate(${originalGunRotation}rad)`;
     }
 
-    setTimeout(() => rotateGun(gun, turret, originalGunRotation), frameInterval);
+    requestAnimationFrame(() => rotateGun(gun, turret, originalGunRotation));
   }
 
   function isWithinRange(fireRange, turret) {
@@ -477,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   
-    return [closestTurret, closestDistance];
+    return closestTurret;
   }
 
   const turretCollisionVertices = {};
@@ -493,28 +488,21 @@ document.addEventListener('DOMContentLoaded', () => {
     gainExp(1);
   }, expIncrementInterval);
 
-  function createTankFireInterval() {
-    const [closestTurret, closestDistance] = findClosestTurret();
-    if (closestDistance > tankFireRange) {
-      isUpperFrameRotating = false;
-      // Get the current rotation angle of the frameImage
-      const frameAngle = parseFloat(frameImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
-      // Rotate the tankImage to match the frameImage angle
-      rotateElement(tankImage, frameAngle, tankRotationSpeed, () => {
-        // Callback after rotation is complete (if needed)
-      });
-    }
+  setInterval(() => {
+    const closestTurret = findClosestTurret();
     if (closestTurret) {
-      const tankCenterX = tankX + tankImage.offsetWidth / 2;
-      const tankCenterY = tankY + tankImage.offsetHeight / 2;
+      const tankAngle = parseFloat(tankImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
       const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
       const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
+      const tankTopX = tankX + tankImage.offsetWidth / 2 + Math.sin(tankAngle) * (tankImage.offsetHeight / 2);
+      const tankTopY = tankY + tankImage.offsetHeight / 2 - Math.cos(tankAngle) * (tankImage.offsetHeight / 2);
+      
   
       const deltaX = turretCenterX - tankX;
       const deltaY = turretCenterY - tankY;
       const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
       rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-        fireBullet(tankCenterX, tankCenterY, turretCenterX, turretCenterY, 'tank-bullet')
+        fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet')
       });
     }
   }, tankFireInterval);
@@ -542,29 +530,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const deltaX = targetX - tankX;
     const deltaY = targetY - tankY;
     const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-    if (!isUpperFrameRotating){
-      rotateTankAndFrame(targetAngle);
-    } else {
-      setTimeout(() => {
-        rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
-          isBottomFrameRotating = false;
-          isMoving = true;
-        });
-      }, 50);
-    }
+    rotateTankAndFrame(targetAngle);
   });
-
-  function rotateTankAndFrame(targetAngle) {
-    isBottomFrameRotating = true;
-    rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-      setTimeout(() => {
-        rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
-          isBottomFrameRotating = false;
-          isMoving = true;
-        });
-      }, 50); // Delay frame rotation by 100ms
-    });
-  }
 
   // Prevent text selection when dragging the tank
   map.addEventListener('mousedown', (e) => {
@@ -611,5 +578,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateCameraPosition();
   moveTank();
-  createTankFireInterval();
 });
