@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const scaleFactorX = miniMapContainer.offsetWidth / map.offsetWidth;
   const scaleFactorY = miniMapContainer.offsetHeight / map.offsetHeight;
 
+  const frameRate = 40;
+  const frameInterval = 1000 / frameRate;
+
   let tankX = 200; // Starting X position
   let tankY = map.offsetHeight - 400; // Starting Y position
   let tankHP = 200;
@@ -23,25 +26,26 @@ document.addEventListener('DOMContentLoaded', () => {
   let tankArmor = 0.15;
   let tankDamage = 10;
   let turretArmor = 0.10;
-  
+
   const tankType = 'shouty';
-  const tankSpeed = 5;
+  const tankSpeed = 0.5;
   const tankRotationSpeed = 0.005;
   const frameRotationSpeed = 0.005;
   const tankHealthRegeneration = 1;
-  const tankFireInterval = 2000;
-  const tankFireRange = 140;
+  const tankFireInterval = 40; // Fire every 10 frames
+  const tankFireRange = 160;
 
-  const turretFireInterval = 2000;
+  const turretFireInterval = 30 * frameRate; // Fire every 30 seconds * frameRate (frames)
   const turretFireRange = 160;
   const turretHP = 400;
   const turretDamage = 30;
   let turretCurrentHPs = Array.from(turrets).map(() => turretHP);
-  
+
   let targetX = tankX;
   let targetY = tankY;
   let tankRotation = 0;
-  let isRotating = false;
+  let isBottomFrameRotating = false;
+  let isUpperFrameRotating = false;
   let isMoving = false;
   let originalGunRotations = Array.from(guns).map(gun => parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0);
 
@@ -135,36 +139,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function moveTank() {
-    if (!isRotating && isMoving) {
-      const deltaX = targetX - tankX;
-      const deltaY = targetY - tankY;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-  
-      if (distance > tankSpeed) {
-        const newTankX = tankX + (deltaX / distance) * tankSpeed;
-        const newTankY = tankY + (deltaY / distance) * tankSpeed;
-        const tankCenterX = newTankX + tankImage.offsetWidth / 2;
-        const tankCenterY = newTankY + tankImage.offsetHeight / 2;
-  
-        if (!isCollidingWithWall(tankCenterX, tankCenterY)) {
-          tankX = newTankX;
-          tankY = newTankY;
-        } else {
-          isMoving = false;
-        }
-      } else {
-        tankX = targetX;
-        tankY = targetY;
-        isMoving = false;
+      if (!isBottomFrameRotating && isMoving) {
+          const deltaX = targetX - tankX;
+          const deltaY = targetY - tankY;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+          if (distance > tankSpeed) {
+              const newTankX = tankX + (deltaX / distance) * tankSpeed;
+              const newTankY = tankY + (deltaY / distance) * tankSpeed;
+              const tankCenterX = newTankX + tankImage.offsetWidth / 2;
+              const tankCenterY = newTankY + tankImage.offsetHeight / 2;
+
+              if (!isCollidingWithWall(tankCenterX, tankCenterY)) {
+                tankX = newTankX;
+                tankY = newTankY;
+              } else {
+                isMoving = false;
+              }
+          } else {
+              tankX = targetX;
+              tankY = targetY;
+              isMoving = false;
+          }
+
+          tank.style.left = `${tankX}px`;
+          tank.style.top = `${tankY}px`;
       }
-  
-      tank.style.left = `${tankX}px`;
-      tank.style.top = `${tankY}px`;
-    }
-  
+
     scrollTop = updateCameraPosition();
     updateMiniMap(scrollTop);
-    requestAnimationFrame(moveTank);
   }
 
   function updateCameraPosition() {
@@ -190,74 +193,74 @@ document.addEventListener('DOMContentLoaded', () => {
     return vertices;
   }
 
-  function fireBullet(startX, startY, targetX, targetY, bulletType) {
-    const bullet = document.createElement('div');
-    bullet.className = `bullet ${bulletType}`;
-    map.appendChild(bullet);
+    function fireBullet(startX, startY, targetX, targetY, bulletType) {
+        const bullet = document.createElement('div');
+        bullet.className = `bullet ${bulletType}`;
+        map.appendChild(bullet);
 
-    bullet.style.left = `${startX}px`;
-    bullet.style.top = `${startY}px`;
+        bullet.style.left = `${startX}px`;
+        bullet.style.top = `${startY}px`;
 
-    const bulletSpeed = 10;
+        const bulletSpeed = 10;
 
-    let startTime = null;
+        let startTime = null;
 
-    function animateBullet(timestamp) {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
+        function animateBullet(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const elapsed = timestamp - startTime;
 
-      let currentTargetX = targetX;
-      let currentTargetY = targetY;
+            let currentTargetX = targetX;
+            let currentTargetY = targetY;
 
-      if (bulletType === 'tower-bullet') {
-        currentTargetX = tankX + tankImage.offsetWidth / 2;
-        currentTargetY = tankY + tankImage.offsetHeight / 2;
-      }
+            if (bulletType === 'tower-bullet') {
+                currentTargetX = tankX + tankImage.offsetWidth / 2;
+                currentTargetY = tankY + tankImage.offsetHeight / 2;
+            }
 
-      const deltaX = currentTargetX - startX;
-      const deltaY = currentTargetY - startY;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const duration = distance / bulletSpeed;
-      const progress = Math.min(elapsed / (duration * 100), 1);
+            const deltaX = currentTargetX - startX;
+            const deltaY = currentTargetY - startY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const duration = distance / bulletSpeed;
+            const progress = Math.min(elapsed / (duration * 100), 1);
 
-      let x = startX + (deltaX * progress);
-      let y = startY + (deltaY * progress);
+            let x = startX + (deltaX * progress);
+            let y = startY + (deltaY * progress);
 
-      bullet.style.left = `${x}px`;
-      bullet.style.top = `${y}px`;
+            bullet.style.left = `${x}px`;
+            bullet.style.top = `${y}px`;
 
-      if (bulletType === 'tower-bullet') {
-        if (tankCurrentHP <= 0) {
-          bullet.remove();
-          return;
+            if (bulletType === 'tower-bullet') {
+              if (tankCurrentHP <= 0) {
+                bullet.remove();
+                return;
+              }
+              if (checkTankCollisionWithBullet(x, y)) {
+                  bullet.remove();
+                  takeDamage('tank', turretDamage);
+                  return;
+              }
+            } else if (bulletType === 'tank-bullet') {
+              let hitTurret = false;
+              turrets.forEach((turret, index) => {
+                  if (turretCurrentHPs[index] > 0 && checkTowerCollisionWithBullet([x, y], turretCollisionVertices[turret.id])) {
+                    bullet.remove();
+                    takeDamage('turret', tankDamage, index);
+                    gainExp(expForTurretHit);
+                    hitTurret = true;
+                  }
+              });
+              if (hitTurret) return;
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animateBullet);
+            } else {
+                bullet.remove();
+            }
         }
-        if (checkTankCollisionWithBullet(x, y)) {
-          bullet.remove();
-          takeDamage('tank', turretDamage);
-          return;
-        }
-      } else if (bulletType === 'tank-bullet') {
-        let hitTurret = false;
-        turrets.forEach((turret, index) => {
-          if (turretCurrentHPs[index] > 0 && checkTowerCollisionWithBullet([x, y], turretCollisionVertices[turret.id])) {
-            bullet.remove();
-            takeDamage('turret', tankDamage, index);
-            gainExp(expForTurretHit);
-            hitTurret = true;
-          }
-        });
-        if (hitTurret) return;
-      }
 
-      if (progress < 1) {
         requestAnimationFrame(animateBullet);
-      } else {
-        bullet.remove();
-      }
     }
-
-    requestAnimationFrame(animateBullet);
-  }
 
   function rotateElement(element, targetAngle, speed, callback) {
     const startAngle = parseFloat(element.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
@@ -290,17 +293,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
 
-  function rotateTankAndFrame(targetAngle) {
-    isRotating = true;
-    rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-      setTimeout(() => {
-        rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
-          isRotating = false;
-          isMoving = true;
-        });
-      }, 50); // Delay frame rotation by 100ms
-    });
-  }
+    function rotateTankAndFrame(targetAngle) {
+      isBottomFrameRotating = true;
+      rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
+        setTimeout(() => {
+          rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
+            isBottomFrameRotating = false;
+            isMoving = true;
+          });
+        }, 50); // Delay frame rotation by 100ms
+      });
+    }
 
   function takeDamage(target, damage, turretIndex = null) {
     if (target === 'tank') {
@@ -336,24 +339,22 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCameraPosition();
   }
 
-  function rotateGun(gun, turret, originalGunRotation) {
-    if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
-      const tankCenterX = tankX + tankImage.offsetWidth / 2;
-      const tankCenterY = tankY + tankImage.offsetHeight / 2;
-      const gunCenterX = turret.offsetLeft + 19; // Center X of the gun image
-      const gunCenterY = turret.offsetTop + 19; // Center Y of the gun image
+    function rotateGun(gun, turret, originalGunRotation) {
+        if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
+            const tankCenterX = tankX + tankImage.offsetWidth / 2;
+            const tankCenterY = tankY + tankImage.offsetHeight / 2;
+            const gunCenterX = turret.offsetLeft + 19; // Center X of the gun image
+            const gunCenterY = turret.offsetTop + 19; // Center Y of the gun image
 
-      const deltaX = tankCenterX - gunCenterX;
-      const deltaY = tankCenterY - gunCenterY;
-      const angle = Math.atan2(deltaY, deltaX);
+            const deltaX = tankCenterX - gunCenterX;
+            const deltaY = tankCenterY - gunCenterY;
+            const angle = Math.atan2(deltaY, deltaX);
 
-      gun.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
-    } else {
-      gun.style.transform = `rotate(${originalGunRotation}rad)`;
+            gun.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
+        } else {
+            gun.style.transform = `rotate(${originalGunRotation}rad)`;
+        }
     }
-
-    requestAnimationFrame(() => rotateGun(gun, turret, originalGunRotation));
-  }
 
   function isWithinRange(fireRange, turret) {
     const tankCenterX = tankX + tankImage.offsetWidth / 2;
@@ -450,132 +451,162 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('hp-value').textContent = `${Math.round(tankCurrentHP)}/${tankHP}`;
   }
 
-  function findClosestTurret() {
-    let closestTurret = null;
-    let closestDistance = Infinity;
-    const tankCenterX = tankX + tankImage.offsetWidth / 2;
-    const tankCenterY = tankY + tankImage.offsetHeight / 2;
-  
-    turrets.forEach((turret, index) => {
-      if (turretCurrentHPs[index] <= 0 || turret.classList.contains(teamColor)) 
-        return;
-  
-      const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-      const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-      const deltaX = turretCenterX - tankCenterX;
-      const deltaY = turretCenterY - tankCenterY;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-  
-      if (distance <= tankFireRange && distance < closestDistance) {
-        closestTurret = turret;
-        closestDistance = distance;
-      }
-    });
-  
-    return closestTurret;
-  }
+    function findClosestTurret() {
+        let closestTurret = null;
+        let closestDistance = Infinity;
+        const tankCenterX = tankX + tankImage.offsetWidth / 2;
+        const tankCenterY = tankY + tankImage.offsetHeight / 2;
 
-  const turretCollisionVertices = {};
-  turrets.forEach((turret) => {
-    const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-    const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-    const vertices = calculateOctagonVertices(13, turretCenterX-2, turretCenterY-2);
-    turretCollisionVertices[turret.id] = vertices;
-    displayVertices(vertices, 3);
-  });
+        turrets.forEach((turret, index) => {
+          if (turretCurrentHPs[index] <= 0 || turret.classList.contains(teamColor)) 
+            return;
+
+            const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+            const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+            const deltaX = turretCenterX - tankCenterX;
+            const deltaY = turretCenterY - tankCenterY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            if (distance <= tankFireRange && distance < closestDistance) {
+                closestTurret = turret;
+                closestDistance = distance;
+            }
+        });
+
+        return [closestTurret, closestDistance];
+    }
+
+    const turretCollisionVertices = {};
+    turrets.forEach((turret) => {
+        const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+        const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+        const vertices = calculateOctagonVertices(13, turretCenterX-2, turretCenterY-2);
+        turretCollisionVertices[turret.id] = vertices;
+        displayVertices(vertices, 3);
+    });
 
   setInterval(() => {
     gainExp(1);
   }, expIncrementInterval);
+    
+    let tankFireCounter = 0;
 
-  setInterval(() => {
-    const closestTurret = findClosestTurret();
-    if (closestTurret) {
-      const tankAngle = parseFloat(tankImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
-      const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
-      const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
-      const tankTopX = tankX + tankImage.offsetWidth / 2 + Math.sin(tankAngle) * (tankImage.offsetHeight / 2);
-      const tankTopY = tankY + tankImage.offsetHeight / 2 - Math.cos(tankAngle) * (tankImage.offsetHeight / 2);
-      
-  
-      const deltaX = turretCenterX - tankX;
-      const deltaY = turretCenterY - tankY;
-      const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-      rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-        fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet')
+    function gameLoop() {
+        moveTank();
+        // Tank Gun Rotation and Firing Logic
+        const [closestTurret, closestDistance] = findClosestTurret();
+        if (closestDistance > tankFireRange) {
+            isUpperFrameRotating = false;
+        }
+        if (closestTurret) {
+            const tankAngle = parseFloat(tankImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
+            const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
+            const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
+            const tankTopX = tankX + tankImage.offsetWidth / 2 + Math.sin(tankAngle) * (tankImage.offsetHeight / 2);
+            const tankTopY = tankY + tankImage.offsetHeight / 2 - Math.cos(tankAngle) * (tankImage.offsetHeight / 2);
+
+            const deltaX = turretCenterX - tankX;
+            const deltaY = turretCenterY - tankY;
+            const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+
+            if (closestDistance <= tankFireRange) {
+                isUpperFrameRotating = true;
+                rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
+                    if (tankFireCounter % tankFireInterval === 0) {
+                        fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
+                    }
+                });
+            }
+        }
+
+      tankFireCounter++;
+
+      // Turret Gun Rotation
+      guns.forEach((gun, index) => {
+          rotateGun(gun, turrets[index], originalGunRotations[index]);
       });
-    }
-  }, tankFireInterval);
 
-  turrets.forEach((turret) => {
-    setInterval(() => {
-      if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
-        const tankCenterX = tankX + tankImage.offsetWidth / 2;
-        const tankCenterY = tankY + tankImage.offsetHeight / 2;
-        const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-        const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-        fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
-      }
-    }, turretFireInterval);
-  });
+        // Turret Firing Logic (handled by setInterval)
+
+        setTimeout(gameLoop, frameInterval);
+    }
+    
+    let turretFireCounters = Array.from(turrets).map(() => 0); // Track turret fire counters
+    turrets.forEach((turret, index) => {
+        setInterval(() => {
+            if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
+                const tankCenterX = tankX + tankImage.offsetWidth / 2;
+                const tankCenterY = tankY + tankImage.offsetHeight / 2;
+                const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+                const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+                fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
+            }
+        }, turretFireInterval);
+    });
 
   setInterval(regenerateHealth, 1000);
 
-  map.addEventListener('click', (e) => {
-    const mapRect = map.getBoundingClientRect();
-    const tankRect = tankImage.getBoundingClientRect();
-    targetX = e.clientX - mapRect.left - tankRect.width / 2;
-    targetY = e.clientY - mapRect.top - tankRect.height / 2;
+    map.addEventListener('click', (e) => {
+        const mapRect = map.getBoundingClientRect();
+        const tankRect = tankImage.getBoundingClientRect();
+        targetX = e.clientX - mapRect.left - tankRect.width / 2;
+        targetY = e.clientY - mapRect.top - tankRect.height / 2;
 
-    const deltaX = targetX - tankX;
-    const deltaY = targetY - tankY;
-    const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-    rotateTankAndFrame(targetAngle);
-  });
-
-  // Prevent text selection when dragging the tank
-  map.addEventListener('mousedown', (e) => {
-    e.preventDefault(); 
-  });
-
-  // Prevent the blinking cursor effect
-  document.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      isMoving = false;
-      targetX = tankX;
-      targetY = tankY;
-    }
-  });
-
-  tank.style.left = `${tankX}px`;
-  tank.style.top = `${tankY}px`;
-
-  originalGunRotations.forEach((originalGunRotation, index) => {
-    rotateGun(guns[index], turrets[index], originalGunRotation);
-  });
-
-  if (tankType === 'shouty') {
-    const upgrades = [
-        { id: 'item-1', imageSrc: 'imgs/shouty-skill-1.png' },
-        { id: 'item-2', imageSrc: 'imgs/shouty-skill-2.png' },
-        { id: 'item-3', imageSrc: 'imgs/shouty-skill-3.png' }
-    ];
-
-    upgrades.forEach(upgrade => {
-        const upgradeElement = document.getElementById(upgrade.id);
-        if (upgradeElement) {
-            const imgElement = document.createElement('img');
-            imgElement.src = upgrade.imageSrc;
-            imgElement.classList.add('upgrade-image'); // Maintain the existing styles
-            upgradeElement.appendChild(imgElement);
+        const deltaX = targetX - tankX;
+        const deltaY = targetY - tankY;
+        const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+        if (!isUpperFrameRotating){
+            rotateTankAndFrame(targetAngle);
+        } else {
+            setTimeout(() => {
+                rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
+                    isBottomFrameRotating = false;
+                    isMoving = true;
+                });
+            }, 50);
         }
     });
-}
 
-  updateCameraPosition();
-  moveTank();
+    // Prevent text selection when dragging the tank
+    map.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+    });
+
+    // Prevent the blinking cursor effect
+    document.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            isMoving = false;
+            targetX = tankX;
+            targetY = tankY;
+        }
+    });
+
+    tank.style.left = `${tankX}px`;
+    tank.style.top = `${tankY}px`;
+
+
+  if (tankType === 'shouty') {
+        const upgrades = [
+            { id: 'item-1', imageSrc: 'imgs/shouty-skill-1.png' },
+            { id: 'item-2', imageSrc: 'imgs/shouty-skill-2.png' },
+            { id: 'item-3', imageSrc: 'imgs/shouty-skill-3.png' }
+        ];
+
+        upgrades.forEach(upgrade => {
+            const upgradeElement = document.getElementById(upgrade.id);
+            if (upgradeElement) {
+                const imgElement = document.createElement('img');
+                imgElement.src = upgrade.imageSrc;
+                imgElement.classList.add('upgrade-image'); // Maintain the existing styles
+                upgradeElement.appendChild(imgElement);
+            }
+        });
+    }
+    
+    updateCameraPosition();
+    gameLoop();
 });
