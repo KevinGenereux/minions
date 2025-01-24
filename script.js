@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankHealthRegeneration = 1;
   const tankFireInterval = 40;
   const tankFireRange = 160;
+  let isTankInvulnerable = false;
+  const invulnerabilityDuration = 3000;
 
   const turretFireInterval = 30 * frameRate;
   const turretFireRange = 160;
@@ -49,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isMoving = false;
   let originalGunRotations = Array.from(guns).map(gun => parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0);
 
-  let username = "Burty";
+  let username = "Player";
   let tankExp = 0;
   let tankLevel = 1;
   let expIncrementInterval = 500;
@@ -230,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bullet.style.top = `${y}px`;
 
             if (bulletType === 'tower-bullet') {
-              if (tankCurrentHP <= 0) {
+              if (tankCurrentHP <= 0 || isTankInvulnerable) {
                 bullet.remove();
                 return;
               }
@@ -306,6 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
   function takeDamage(target, damage, turretIndex = null) {
+    if (isTankInvulnerable)
+      return;
     if (target === 'tank') {
       tankCurrentHP -= damage * (1 - tankArmor);
       updateTankHPBar();
@@ -325,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function respawnTank() {
+    isTankInvulnerable = true;
     tankX = 200;
     tankY = map.offsetHeight - 30;
     targetX = tankX;
@@ -337,6 +342,9 @@ document.addEventListener('DOMContentLoaded', () => {
     tankCurrentHP = tankHP;
     updateTankHPBar();
     updateCameraPosition();
+    setTimeout(() => {
+      isTankInvulnerable = false;
+    }, invulnerabilityDuration);
   }
 
     function rotateGun(gun, turret, originalGunRotation) {
