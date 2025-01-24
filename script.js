@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const frameRate = 40;
   const frameInterval = 1000 / frameRate;
 
-  let tankX = 200; // Starting X position
-  let tankY = map.offsetHeight - 400; // Starting Y position
+  let tankX = 200;
+  let tankY = map.offsetHeight - 400;
   let tankHP = 200;
   let tankCurrentHP = tankHP;
   let tankArmor = 0.15;
@@ -29,13 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const tankType = 'shouty';
   const tankSpeed = 0.5;
-  const tankRotationSpeed = 0.005;
-  const frameRotationSpeed = 0.005;
+  const tankRotationSpeed = 0.008;
+  const frameRotationSpeed = 0.008;
   const tankHealthRegeneration = 1;
-  const tankFireInterval = 40; // Fire every 10 frames
+  const tankFireInterval = 40;
   const tankFireRange = 160;
 
-  const turretFireInterval = 30 * frameRate; // Fire every 30 seconds * frameRate (frames)
+  const turretFireInterval = 30 * frameRate;
   const turretFireRange = 160;
   const turretHP = 400;
   const turretDamage = 30;
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let username = "Burty";
   let tankExp = 0;
   let tankLevel = 1;
-  let expIncrementInterval = 500; // 1 second
+  let expIncrementInterval = 500;
   const expPerLevel = 10;
   const expForTurretHit = 3;
 
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isBottomFrameRotating = false;
             isMoving = true;
           });
-        }, 50); // Delay frame rotation by 100ms
+        }, 50);
       });
     }
 
@@ -343,8 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
             const tankCenterX = tankX + tankImage.offsetWidth / 2;
             const tankCenterY = tankY + tankImage.offsetHeight / 2;
-            const gunCenterX = turret.offsetLeft + 19; // Center X of the gun image
-            const gunCenterY = turret.offsetTop + 19; // Center Y of the gun image
+            const gunCenterX = turret.offsetLeft + 19;
+            const gunCenterY = turret.offsetTop + 19;
 
             const deltaX = tankCenterX - gunCenterX;
             const deltaY = tankCenterY - gunCenterY;
@@ -493,10 +493,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function gameLoop() {
         moveTank();
-        // Tank Gun Rotation and Firing Logic
         const [closestTurret, closestDistance] = findClosestTurret();
-        if (closestDistance > tankFireRange) {
+        if (closestDistance > tankFireRange && isUpperFrameRotating) {
+          const frameAngle = parseFloat(frameImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
+          rotateElement(tankImage, frameAngle, tankRotationSpeed, () => {
             isUpperFrameRotating = false;
+          });
         }
         if (closestTurret) {
             const tankAngle = parseFloat(tankImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
@@ -521,17 +523,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tankFireCounter++;
 
-      // Turret Gun Rotation
       guns.forEach((gun, index) => {
           rotateGun(gun, turrets[index], originalGunRotations[index]);
       });
 
-        // Turret Firing Logic (handled by setInterval)
-
         setTimeout(gameLoop, frameInterval);
     }
     
-    let turretFireCounters = Array.from(turrets).map(() => 0); // Track turret fire counters
     turrets.forEach((turret, index) => {
         setInterval(() => {
             if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
@@ -557,7 +555,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
         if (!isUpperFrameRotating){
             rotateTankAndFrame(targetAngle);
-        } else {
+        } 
+        else {
             setTimeout(() => {
                 rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
                     isBottomFrameRotating = false;
@@ -567,12 +566,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Prevent text selection when dragging the tank
     map.addEventListener('mousedown', (e) => {
         e.preventDefault();
     });
 
-    // Prevent the blinking cursor effect
     document.addEventListener('mousedown', (e) => {
         e.preventDefault();
     });
@@ -601,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (upgradeElement) {
                 const imgElement = document.createElement('img');
                 imgElement.src = upgrade.imageSrc;
-                imgElement.classList.add('upgrade-image'); // Maintain the existing styles
+                imgElement.classList.add('upgrade-image');
                 upgradeElement.appendChild(imgElement);
             }
         });
