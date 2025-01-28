@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const frameRate = 40;
   const frameInterval = 1000 / frameRate;
 
-  let tankX = 200;
-  let tankY = map.offsetHeight - 20;
+  let tankX = 20;
+  let tankY = map.offsetHeight - 400;
   let tankMaxHP = 200;
   let tankCurrentHP = tankMaxHP;
   let tankArmor = 0.15;
@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tankRotationSpeed = 0.008;
   const frameRotationSpeed = 0.008;
   const tankHealthRegeneration = 1;
+  const tankHealthRegenerationInterval = 200;
   const tankFireInterval = 40;
   const tankFireRange = 160;
   let isTankInvulnerable = false;
@@ -131,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
     tankMarker.style.top = `${tankY * scaleFactorY}px`;
 
     cameraViewMarker.style.top = `${scrollTop * scaleFactorY}px`;
-    cameraViewMarker.style.width = `${frame.clientWidth * scaleFactorX}px`;
     cameraViewMarker.style.height = `${frame.clientHeight * scaleFactorY}px`;
   }
 
@@ -370,16 +370,16 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
   }
 
   function respawnTank() {
+    tankImage.style.transform = `rotate(${tankRotation}rad)`;
+    frameImage.style.transform = `rotate(${tankRotation}rad)`;
+    isBottomFrameRotating = false;
+    isUpperFrameRotating = false;
     isTankInvulnerable = true;
     tankX = 200;
     tankY = map.offsetHeight - 30;
     targetX = tankX;
     targetY = tankY;
     tankRotation = 0;
-    tankImage.style.transform = `rotate(${tankRotation}rad)`;
-    frameImage.style.transform = `rotate(${tankRotation}rad)`;
-    isBottomFrameRotating = false;
-    isUpperFrameRotating = false;
     tank.style.left = `${tankX}px`;
     tank.style.top = `${tankY}px`;
     tankCurrentHP = tankMaxHP;
@@ -452,6 +452,7 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
       tankCurrentHP = Math.min(tankCurrentHP + tankHealthRegeneration, tankMaxHP);
       const hpPercentage = (tankCurrentHP / tankMaxHP) * 100;
       tankHPBar.style.width = `${hpPercentage}%`;
+      hpDisplay.textContent = `${Math.round(tankCurrentHP)}/${tankMaxHP}`;
     }
   }
 
@@ -529,38 +530,38 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     function gameLoop() {
         moveTank();
         const [closestTurret, closestDistance] = findClosestTurret();
-        if (closestDistance > tankFireRange && isUpperFrameRotating) {
-          const frameAngle = parseFloat(frameImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
-          rotateElement(tankImage, frameAngle, tankRotationSpeed, () => {
-            isUpperFrameRotating = false;
-          });
-        }
-        if (closestTurret) {
-            const tankAngle = parseFloat(tankImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
+        
+        // Handle tank rotation
+        if (closestTurret && closestDistance <= tankFireRange) {
+            // When in range of turret, aim at it
             const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
             const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
-            const tankTopX = tankX + tankImage.offsetWidth / 2 + Math.sin(tankAngle) * (tankImage.offsetHeight / 2);
-            const tankTopY = tankY + tankImage.offsetHeight / 2 - Math.cos(tankAngle) * (tankImage.offsetHeight / 2);
-
+            const tankTopX = tankX + tankImage.offsetWidth / 2;
+            const tankTopY = tankY + tankImage.offsetHeight / 2;
             const deltaX = turretCenterX - tankTopX;
             const deltaY = turretCenterY - tankTopY;
             const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-
-            if (closestDistance <= tankFireRange) {
-                isUpperFrameRotating = true;
-                rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-                });
-                if (tankFireCounter % tankFireInterval === 0) {
-                  fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
-                }
+            
+            isUpperFrameRotating = true;
+            rotateElement(tankImage, targetAngle, tankRotationSpeed);
+            
+            // Fire at turret when in range
+            if (tankFireCounter % tankFireInterval === 0) {
+                fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
             }
+        } else if (isUpperFrameRotating) {
+            // When out of range, align tank with frame
+            const frameAngle = parseFloat(frameImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
+            rotateElement(tankImage, frameAngle, tankRotationSpeed, () => {
+                isUpperFrameRotating = false;
+            });
         }
 
-      tankFireCounter++;
+        tankFireCounter++;
 
-      guns.forEach((gun, index) => {
-          rotateGun(gun, turrets[index], originalGunRotations[index]);
-      });
+        guns.forEach((gun, index) => {
+            rotateGun(gun, turrets[index], originalGunRotations[index]);
+        });
 
         setTimeout(gameLoop, frameInterval);
     }
@@ -577,7 +578,9 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
         }, turretFireInterval);
     });
 
-  setInterval(regenerateHealth, 200);
+    setInterval(() => {
+      regenerateHealth();
+    }, tankHealthRegenerationInterval);
 
     map.addEventListener('click', (e) => {
         const mapRect = map.getBoundingClientRect();
