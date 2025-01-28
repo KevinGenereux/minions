@@ -337,6 +337,8 @@ document.addEventListener('DOMContentLoaded', () => {
     tankRotation = 0;
     tankImage.style.transform = `rotate(${tankRotation}rad)`;
     frameImage.style.transform = `rotate(${tankRotation}rad)`;
+    isBottomFrameRotating = false;
+    isUpperFrameRotating = false;
     tank.style.left = `${tankX}px`;
     tank.style.top = `${tankY}px`;
     tankCurrentHP = tankHP;
@@ -490,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
         const vertices = calculateOctagonVertices(13, turretCenterX-2, turretCenterY-2);
         turretCollisionVertices[turret.id] = vertices;
-        displayVertices(vertices, 3);
+        // displayVertices(vertices, 3);
     });
 
   setInterval(() => {
@@ -515,17 +517,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const tankTopX = tankX + tankImage.offsetWidth / 2 + Math.sin(tankAngle) * (tankImage.offsetHeight / 2);
             const tankTopY = tankY + tankImage.offsetHeight / 2 - Math.cos(tankAngle) * (tankImage.offsetHeight / 2);
 
-            const deltaX = turretCenterX - tankX;
-            const deltaY = turretCenterY - tankY;
+            const deltaX = turretCenterX - tankTopX;
+            const deltaY = turretCenterY - tankTopY;
             const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
 
             if (closestDistance <= tankFireRange) {
                 isUpperFrameRotating = true;
                 rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-                    if (tankFireCounter % tankFireInterval === 0) {
-                        fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
-                    }
                 });
+                if (tankFireCounter % tankFireInterval === 0) {
+                  fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
+                }
             }
         }
 
