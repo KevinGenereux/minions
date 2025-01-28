@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const frame = document.getElementById('frame');
   const turrets = document.querySelectorAll('.turret');
   const guns = document.querySelectorAll('.gun-image');
+  const hpDisplay = document.getElementById('hp-value');
   const tankHPBar = document.getElementById('tank-hp').querySelector('.hp-bar-inner');
   const turretHPBars = document.querySelectorAll('.turret-hp .hp-bar-inner');
   const healthHPBar = document.getElementById('hp-stats-bar').querySelector('.hp-bar-inner');
@@ -20,9 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const frameInterval = 1000 / frameRate;
 
   let tankX = 200;
-  let tankY = map.offsetHeight - 400;
-  let tankHP = 200;
-  let tankCurrentHP = tankHP;
+  let tankY = map.offsetHeight - 20;
+  let tankMaxHP = 200;
+  let tankCurrentHP = tankMaxHP;
   let tankArmor = 0.15;
   let tankDamage = 10;
   let turretArmor = 0.10;
@@ -61,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let tankExp = 0;
   let tankLevel = 1;
   let expIncrementInterval = 500;
-  const expPerLevel = 10;
+  const expPerLevel = 30;
   const expForTurretHit = 3;
 
   const damageInput = document.getElementById('damage-value');
@@ -71,12 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const usernameInput = document.getElementById('username');
   const usernameLabel = document.getElementById('username-label');
 
+  const SPEED_DISPLAY_MULTIPLIER = 60;
   damageInput.textContent = tankDamage + " DPS";
   rangeInput.textContent = tankFireRange + " meters";
   armorInput.textContent = Math.round(tankArmor * 100) + "%";
-  speedInput.textContent = tankSpeed + " kph";
+  speedInput.textContent = tankSpeed * SPEED_DISPLAY_MULTIPLIER + " kph";
   usernameInput.textContent = username + "\u00A0" + tankLevel;
   usernameLabel.textContent = username;
+  hpDisplay.textContent = `${Math.round(tankCurrentHP)}/${tankMaxHP}`;
 
   const walls = [
     { x1: 100, x2: 205, y1: 728, y2: 770 },
@@ -379,7 +382,7 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     isUpperFrameRotating = false;
     tank.style.left = `${tankX}px`;
     tank.style.top = `${tankY}px`;
-    tankCurrentHP = tankHP;
+    tankCurrentHP = tankMaxHP;
     updateTankHPBar();
     updateCameraPosition();
     setTimeout(() => {
@@ -445,9 +448,9 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
   }
 
   function regenerateHealth() {
-    if (tankCurrentHP < tankHP) {
-      tankCurrentHP = Math.min(tankCurrentHP + tankHealthRegeneration, tankHP);
-      const hpPercentage = (tankCurrentHP / tankHP) * 100;
+    if (tankCurrentHP < tankMaxHP) {
+      tankCurrentHP = Math.min(tankCurrentHP + tankHealthRegeneration, tankMaxHP);
+      const hpPercentage = (tankCurrentHP / tankMaxHP) * 100;
       tankHPBar.style.width = `${hpPercentage}%`;
     }
   }
@@ -465,22 +468,22 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
   function levelUp() {
     tankLevel += 1;
     tankDamage += 2;
-    tankHP += 5;
+    tankMaxHP += 5;
     tankCurrentHP += 5;
-    tankArmor += 0.01;
+    tankArmor += 0.00;
     updateTankHPBar();
     damageInput.textContent = tankDamage + " DPS";
     rangeInput.textContent = tankFireRange + " meters";
     armorInput.textContent = Math.round(tankArmor*100) + "%";
-    speedInput.textContent = tankSpeed + " kph";
+    speedInput.textContent = tankSpeed * SPEED_DISPLAY_MULTIPLIER  + " kph";
     usernameInput.textContent = username + "\u00A0" + tankLevel;
   }
 
   function updateTankHPBar() {
-    const hpPercentage = Math.max(tankCurrentHP / tankHP, 0) * 100;
+    const hpPercentage = Math.max(tankCurrentHP / tankMaxHP, 0) * 100;
     tankHPBar.style.width = `${hpPercentage}%`;
     healthHPBar.style.width = `${hpPercentage}%`;
-    document.getElementById('hp-value').textContent = `${Math.round(tankCurrentHP)}/${tankHP}`;
+    document.getElementById('hp-value').textContent = `${Math.round(tankCurrentHP)}/${tankMaxHP}`;
   }
 
     function findClosestTurret() {
@@ -574,7 +577,7 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
         }, turretFireInterval);
     });
 
-  setInterval(regenerateHealth, 1000);
+  setInterval(regenerateHealth, 200);
 
     map.addEventListener('click', (e) => {
         const mapRect = map.getBoundingClientRect();
