@@ -39,9 +39,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const turretFireInterval = 30 * frameRate;
   const turretFireRange = 160;
-  const turretHP = 400;
+  const BASE_TURRET_HP = 400;
+  const SPECIAL_TURRET_HP = 1500;
   const turretDamage = 30;
-  let turretCurrentHPs = Array.from(turrets).map(() => turretHP);
+  let turretCurrentHPs = Array.from(turrets).map((turret) => {
+    if (turret.id === 'blue-turret-1' || turret.id === 'red-turret-1') {
+        return SPECIAL_TURRET_HP;
+    }
+    return BASE_TURRET_HP;
+  });
 
   let targetX = tankX;
   let targetY = tankY;
@@ -140,6 +146,33 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
+  // Add collision detection function
+function isPointInPolygon(point, polygon) {
+  let x = point[0], y = point[1];
+  let inside = false;
+  
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      let xi = polygon[i][0], yi = polygon[i][1];
+      let xj = polygon[j][0], yj = polygon[j][1];
+      
+      let intersect = ((yi > y) != (yj > y))
+          && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+  }
+  
+  return inside;
+}
+
+function isCollidingWithTurret(tankCenterX, tankCenterY) {
+  for (let turret of turrets) {
+      if (turretCurrentHPs[Array.from(turrets).indexOf(turret)] <= 0) continue;
+      if (isPointInPolygon([tankCenterX, tankCenterY], turretCollisionVertices[turret.id])) {
+          return true;
+      }
+  }
+  return false;
+}
+
   function moveTank() {
       if (!isBottomFrameRotating && isMoving) {
           const deltaX = targetX - tankX;
@@ -152,7 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
               const tankCenterX = newTankX + tankImage.offsetWidth / 2;
               const tankCenterY = newTankY + tankImage.offsetHeight / 2;
 
-              if (!isCollidingWithWall(tankCenterX, tankCenterY)) {
+              if (!isCollidingWithWall(tankCenterX, tankCenterY) && 
+              !isCollidingWithTurret(tankCenterX, tankCenterY)) {
                 tankX = newTankX;
                 tankY = newTankY;
               } else {
@@ -244,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (bulletType === 'tank-bullet') {
               let hitTurret = false;
               turrets.forEach((turret, index) => {
-                  if (turretCurrentHPs[index] > 0 && checkTowerCollisionWithBullet([x, y], turretCollisionVertices[turret.id])) {
+                  if (turretCurrentHPs[index] > 0 && isPointInPolygon([x, y], turretCollisionVertices[turret.id])) {
                     bullet.remove();
                     takeDamage('turret', tankDamage, index);
                     gainExp(expForTurretHit);
@@ -318,7 +352,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else if (target === 'turret' && turretIndex !== null) {
       turretCurrentHPs[turretIndex] -= damage * (1 - turretArmor);
-      const hpPercentage = Math.max(turretCurrentHPs[turretIndex] / turretHP, 0) * 100;
+      const maxHP = (turrets[turretIndex].id === 'blue-turret-1' || 
+                    turrets[turretIndex].id === 'red-turret-1') 
+                    ? SPECIAL_TURRET_HP 
+                    : BASE_TURRET_HP;
+      const hpPercentage = Math.max(turretCurrentHPs[turretIndex] / maxHP, 0) * 100;
       turretHPBars[turretIndex].style.width = `${hpPercentage}%`;
       if (turretCurrentHPs[turretIndex] <= 0) {
         turrets[turretIndex].remove();
@@ -388,22 +426,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const tankBottom = tankTop + tankImage.offsetHeight;
 
     return bulletX >= tankLeft && bulletX <= tankRight && bulletY >= tankTop && bulletY <= tankBottom;
-  }
-
-  function checkTowerCollisionWithBullet(point, polygon) {
-    let x = point[0], y = point[1];
-
-    let inside = false;
-    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      let xi = polygon[i][0], yi = polygon[i][1];
-      let xj = polygon[j][0], yj = polygon[j][1];
-
-      let intersect = ((yi > y) != (yj > y))
-          && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-      if (intersect) inside = !inside;
-    }
-
-    return inside;
   }
 
   function displayVertices(vertices, size) {
@@ -490,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
     turrets.forEach((turret) => {
         const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
         const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-        const vertices = calculateOctagonVertices(13, turretCenterX-2, turretCenterY-2);
+        const vertices = calculateOctagonVertices(19, turretCenterX-2, turretCenterY-2);
         turretCollisionVertices[turret.id] = vertices;
         // displayVertices(vertices, 3);
     });
