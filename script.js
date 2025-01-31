@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const turretHPBars = document.querySelectorAll('.turret-hp .hp-bar-inner');
   const healthHPBar = document.getElementById('hp-stats-bar').querySelector('.hp-bar-inner');
   const expBar = document.getElementById('exp-bar').querySelector('.hp-bar-inner');
+  const upgradeImages = document.querySelectorAll('.upgrade-image');
   const miniMapContainer = document.getElementById('mini-map-container');
   const scaleFactorX = miniMapContainer.offsetWidth / map.offsetWidth;
   const scaleFactorY = miniMapContainer.offsetHeight / map.offsetHeight;
@@ -27,11 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let tankArmor = 0.15;
   let tankDamage = 10;
   let turretArmor = 0.10;
+  let skillCounts = [1, 1, 1];
 
   const tankType = 'shouty';
   const tankSpeed = 0.5;
-  const tankRotationSpeed = 0.008;
-  const frameRotationSpeed = 0.008;
+  const tankRotationSpeed = 0.012;
+  const frameRotationSpeed = 0.006;
   const tankHealthRegeneration = 1;
   const tankHealthRegenerationInterval = 200;
   const tankFireInterval = 40;
@@ -54,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let targetX = tankX;
   let targetY = tankY;
   let tankRotation = 0;
-  let isBottomFrameRotating = false;
   let isUpperFrameRotating = false;
   let isMoving = false;
   let originalGunRotations = Array.from(guns).map(gun => parseFloat(gun.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0);
@@ -62,9 +63,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let username = "Player";
   let tankExp = 0;
   let tankLevel = 1;
+  let upgradePoints = 0;
+  let missileRange = 100;
+  let missileDamage = 50;
+  let mortarRange = 100;
+  let mortarDamage = 50;
   let expIncrementInterval = 500;
   const expPerLevel = 30;
   const expForTurretHit = 3;
+  
 
   const damageInput = document.getElementById('damage-value');
   const rangeInput = document.getElementById('range-value');
@@ -177,7 +184,7 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
 }
 
   function moveTank() {
-      if (!isBottomFrameRotating && isMoving) {
+      if (isMoving) {
           const deltaX = targetX - tankX;
           const deltaY = targetY - tankY;
           const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -333,15 +340,11 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
   
 
     function rotateTankAndFrame(targetAngle) {
-      isBottomFrameRotating = true;
-      rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-        setTimeout(() => {
-          rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
-            isBottomFrameRotating = false;
-            isMoving = true;
-          });
-        }, 50);
-      });
+      isMoving = false;
+      rotateElement(tankImage, targetAngle, tankRotationSpeed);
+      rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
+        isMoving = true;
+      });  
     }
 
   function takeDamage(target, damage, turretIndex = null) {
@@ -372,7 +375,6 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
   function respawnTank() {
     tankImage.style.transform = `rotate(${tankRotation}rad)`;
     frameImage.style.transform = `rotate(${tankRotation}rad)`;
-    isBottomFrameRotating = false;
     isUpperFrameRotating = false;
     isTankInvulnerable = true;
     tankX = 200;
@@ -468,6 +470,8 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
   
   function levelUp() {
     tankLevel += 1;
+    if (tankLevel < 28)
+      upgradePoints += 1;
     tankDamage += 2;
     tankMaxHP += 5;
     tankCurrentHP += 5;
@@ -546,14 +550,16 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
             rotateElement(tankImage, targetAngle, tankRotationSpeed);
             
             // Fire at turret when in range
-            if (tankFireCounter % tankFireInterval === 0) {
+            if (tankFireCounter % tankFireInterval === 0)
                 fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
-            }
+              
         } else if (isUpperFrameRotating) {
             // When out of range, align tank with frame
-            const frameAngle = parseFloat(frameImage.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
-            rotateElement(tankImage, frameAngle, tankRotationSpeed, () => {
-                isUpperFrameRotating = false;
+            const deltaX = targetX - tankX;
+            const deltaY = targetY - tankY;
+            const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+            isUpperFrameRotating = false;
+            rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
             });
         }
 
@@ -595,12 +601,10 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
             rotateTankAndFrame(targetAngle);
         } 
         else {
-            setTimeout(() => {
-                rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
-                    isBottomFrameRotating = false;
-                    isMoving = true;
-                });
-            }, 50);
+          isMoving = false;
+          rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
+              isMoving = true;
+          });
         }
     });
 
@@ -619,6 +623,19 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
             targetY = tankY;
         }
     });
+
+    function handleUpgrade(skillName) {
+      if (upgradePoints > 0 && skillLevels[skillName] < MAX_SKILL_LEVEL) {
+        upgradePoints--;
+        skillLevels[skillName]++;
+        skillCounts[skillName].textContent = skillLevels[skillName];
+        updateUpgradeVisibility();
+      }
+    }
+
+    upgradeImages[0].addEventListener('click', () => handleUpgrade('upgrade1'));
+    upgradeImages[1].addEventListener('click', () => handleUpgrade('upgrade2'));
+    upgradeImages[2].addEventListener('click', () => handleUpgrade('upgrade3'));
 
     tank.style.left = `${tankX}px`;
     tank.style.top = `${tankY}px`;
