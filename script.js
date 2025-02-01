@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let tankArmor = 0.15;
   let tankDamage = 10;
   let turretArmor = 0.10;
-  let skillCounts = [1, 1, 1];
+  let skillLevels = [1, 1, 1];
 
   const tankType = 'shouty';
   const tankSpeed = 0.5;
@@ -473,8 +473,7 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
   
   function levelUp() {
     tankLevel += 1;
-    if (tankLevel < 28)
-      upgradePoints += 1;
+    upgradePoints += 1;
     tankDamage += 2;
     tankMaxHP += 5;
     tankCurrentHP += 5;
@@ -485,7 +484,25 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     armorInput.textContent = Math.round(tankArmor*100) + "%";
     speedInput.textContent = tankSpeed * SPEED_DISPLAY_MULTIPLIER  + " kph";
     usernameInput.textContent = username + "\u00A0" + tankLevel;
+    updateUpgradeImagesVisibility();
   }
+
+  function updateUpgradeImagesVisibility() {
+    if (upgradePoints === 0) {
+      upgradeImages.forEach(img => img.style.visibility = 'hidden');
+      return;
+    }
+    
+    upgradeImages.forEach((img, index) => {
+      if (skillLevels[index] === 10) {
+        img.style.visibility = 'hidden';
+      } else {
+        img.style.visibility = 'visible';
+      }
+    });
+  }
+
+  updateUpgradeImagesVisibility();
 
   function updateTankHPBar() {
     const hpPercentage = Math.max(tankCurrentHP / tankMaxHP, 0) * 100;
@@ -636,18 +653,24 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
         }
     });
 
-    function handleUpgrade(skillName) {
-      if (upgradePoints > 0 && skillLevels[skillName] < MAX_SKILL_LEVEL) {
+    function handleUpgrade(skillIdx) {
+      if (upgradePoints > 0 && skillLevels[skillIdx-1] < 10) {
         upgradePoints--;
-        skillLevels[skillName]++;
-        skillCounts[skillName].textContent = skillLevels[skillName];
-        updateUpgradeVisibility();
+        skillLevels[skillIdx-1]++;
+        
+        // Update skill count display
+        const skillCountElement = document.getElementById(`upgrade-count-${skillIdx}`);
+        if (skillCountElement) {
+          skillCountElement.textContent = skillLevels[skillIdx-1];
+        }
+        
+        updateUpgradeImagesVisibility();
       }
     }
 
-    upgradeImages[0].addEventListener('click', () => handleUpgrade('upgrade1'));
-    upgradeImages[1].addEventListener('click', () => handleUpgrade('upgrade2'));
-    upgradeImages[2].addEventListener('click', () => handleUpgrade('upgrade3'));
+    upgradeImages[0].addEventListener('click', () => handleUpgrade(1));
+    upgradeImages[1].addEventListener('click', () => handleUpgrade(2));
+    upgradeImages[2].addEventListener('click', () => handleUpgrade(3));
 
     tank.style.left = `${tankX}px`;
     tank.style.top = `${tankY}px`;
