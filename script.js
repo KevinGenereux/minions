@@ -365,6 +365,10 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
       const hpPercentage = Math.max(turretCurrentHPs[turretIndex] / maxHP, 0) * 100;
       turretHPBars[turretIndex].style.width = `${hpPercentage}%`;
       if (turretCurrentHPs[turretIndex] <= 0) {
+        const turretId = turrets[turretIndex].id;
+        const miniMapMarker = document.querySelector(`#mini-map-${turretId}`);
+        if (miniMapMarker) 
+          miniMapMarker.remove();
         turrets[turretIndex].remove();
         guns[turretIndex].remove();
         delete turretCollisionVertices[turrets[turretIndex].id];
@@ -401,11 +405,10 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
 
             const deltaX = tankCenterX - gunCenterX;
             const deltaY = tankCenterY - gunCenterY;
-            const angle = Math.atan2(deltaY, deltaX);
-
-            gun.style.transform = `rotate(${angle - Math.PI / 2}rad)`;
+            const targetAngle = Math.atan2(deltaY, deltaX) - Math.PI / 2;
+            rotateElement(gun, targetAngle, 0.01);
         } else {
-            gun.style.transform = `rotate(${originalGunRotation}rad)`;
+          rotateElement(gun, originalGunRotation, 0.01);
         }
     }
 
@@ -588,7 +591,16 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
       regenerateHealth();
     }, tankHealthRegenerationInterval);
 
+    let lastClickTime = 0;
+    const CLICK_DELAY = 100; // 100ms minimum delay between clicks
+
     map.addEventListener('click', (e) => {
+        const currentTime = Date.now();
+        if (currentTime - lastClickTime < CLICK_DELAY) {
+            return; // Ignore clicks that are too close together
+        }
+        lastClickTime = currentTime;
+
         const mapRect = map.getBoundingClientRect();
         const tankRect = tankImage.getBoundingClientRect();
         targetX = e.clientX - mapRect.left - tankRect.width / 2;

@@ -224,6 +224,29 @@ img {
   z-index: 8;
 }
 
+#respawn-message {
+  position: fixed;
+  bottom: 165px;
+  right: 25px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  z-index: 1000;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.hidden {
+  display: none;
+}
+
+#respawn-countdown {
+  font-weight: bold;
+  color: #ff9900;
+}
+
 #shouty-3d-container {
   display: flex;
   flex-direction: column;
