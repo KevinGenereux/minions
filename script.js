@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let username = "Player";
   let tankExp = 0;
   let tankLevel = 1;
-  let upgradePoints = 0;
+  let upgradePoints = 3;
   let missileRange = 100;
   let missileDamage = 50;
   let mortarRange = 100;
@@ -787,12 +787,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.shiftKey && e.key >= "1" && e.key <= "3") {
-      const numberPressed = parseInt(e.key, 10);
-      console.log(numberPressed);
-      handleUpgrade(numberPressed);
+  let shiftPressed = false;
+  document.addEventListener("keydown", (event) => {
+    if (event.shiftKey) {
+      switch (event.code) {
+        case "Digit1":
+          handleUpgrade(1);
+          break;
+        case "Digit2":
+          handleUpgrade(2);
+          break;
+        case "Digit3":
+          handleUpgrade(3);
+          break;
+      }
     }
+  });
+  document.addEventListener("keyup", (e) => {
+      if (e.key === "Shift") {
+          shiftPressed = false;
+      }
   });
 
   function handleUpgrade(skillIdx) {
