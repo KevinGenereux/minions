@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const turretDamage = 30;
   let turretCurrentHPs = Array.from(turrets).map((turret) => {
     if (turret.id === 'blue-turret-1' || turret.id === 'red-turret-1') {
-        return SPECIAL_TURRET_HP;
+      return SPECIAL_TURRET_HP;
     }
     return BASE_TURRET_HP;
   });
@@ -72,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const expPerLevel = 30;
   const expForTurretHit = 3;
   
-
   const damageInput = document.getElementById('damage-value');
   const rangeInput = document.getElementById('range-value');
   const armorInput = document.getElementById('armor-value');
@@ -157,60 +156,60 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Add collision detection function
-function isPointInPolygon(point, polygon) {
-  let x = point[0], y = point[1];
-  let inside = false;
-  
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+  function isPointInPolygon(point, polygon) {
+    let x = point[0], y = point[1];
+    let inside = false;
+    
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
       let xi = polygon[i][0], yi = polygon[i][1];
       let xj = polygon[j][0], yj = polygon[j][1];
       
       let intersect = ((yi > y) != (yj > y))
           && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
       if (intersect) inside = !inside;
+    }
+    
+    return inside;
   }
-  
-  return inside;
-}
 
-function isCollidingWithTurret(tankCenterX, tankCenterY) {
-  for (let turret of turrets) {
+  function isCollidingWithTurret(tankCenterX, tankCenterY) {
+    for (let turret of turrets) {
       if (turretCurrentHPs[Array.from(turrets).indexOf(turret)] <= 0) continue;
       if (isPointInPolygon([tankCenterX, tankCenterY], turretCollisionVertices[turret.id])) {
-          return true;
+        return true;
       }
+    }
+    return false;
   }
-  return false;
-}
 
   function moveTank() {
-      if (isMoving) {
-          const deltaX = targetX - tankX;
-          const deltaY = targetY - tankY;
-          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (isMoving) {
+      const deltaX = targetX - tankX;
+      const deltaY = targetY - tankY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-          if (distance > tankSpeed) {
-              const newTankX = tankX + (deltaX / distance) * tankSpeed;
-              const newTankY = tankY + (deltaY / distance) * tankSpeed;
-              const tankCenterX = newTankX + tankImage.offsetWidth / 2;
-              const tankCenterY = newTankY + tankImage.offsetHeight / 2;
+      if (distance > tankSpeed) {
+        const newTankX = tankX + (deltaX / distance) * tankSpeed;
+        const newTankY = tankY + (deltaY / distance) * tankSpeed;
+        const tankCenterX = newTankX + tankImage.offsetWidth / 2;
+        const tankCenterY = newTankY + tankImage.offsetHeight / 2;
 
-              if (!isCollidingWithWall(tankCenterX, tankCenterY) && 
-              !isCollidingWithTurret(tankCenterX, tankCenterY)) {
-                tankX = newTankX;
-                tankY = newTankY;
-              } else {
-                isMoving = false;
-              }
-          } else {
-              tankX = targetX;
-              tankY = targetY;
-              isMoving = false;
-          }
-
-          tank.style.left = `${tankX}px`;
-          tank.style.top = `${tankY}px`;
+        if (!isCollidingWithWall(tankCenterX, tankCenterY) && 
+            !isCollidingWithTurret(tankCenterX, tankCenterY)) {
+          tankX = newTankX;
+          tankY = newTankY;
+        } else {
+          isMoving = false;
+        }
+      } else {
+        tankX = targetX;
+        tankY = targetY;
+        isMoving = false;
       }
+
+      tank.style.left = `${tankX}px`;
+      tank.style.top = `${tankY}px`;
+    }
 
     scrollTop = updateCameraPosition();
     updateMiniMap(scrollTop);
@@ -239,74 +238,74 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     return vertices;
   }
 
-    function fireBullet(startX, startY, targetX, targetY, bulletType) {
-        const bullet = document.createElement('div');
-        bullet.className = `bullet ${bulletType}`;
-        map.appendChild(bullet);
+  function fireBullet(startX, startY, targetX, targetY, bulletType) {
+    const bullet = document.createElement('div');
+    bullet.className = `bullet ${bulletType}`;
+    map.appendChild(bullet);
 
-        bullet.style.left = `${startX}px`;
-        bullet.style.top = `${startY}px`;
+    bullet.style.left = `${startX}px`;
+    bullet.style.top = `${startY}px`;
 
-        const bulletSpeed = 10;
+    const bulletSpeed = 10;
 
-        let startTime = null;
+    let startTime = null;
 
-        function animateBullet(timestamp) {
-            if (!startTime) startTime = timestamp;
-            const elapsed = timestamp - startTime;
+    function animateBullet(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
 
-            let currentTargetX = targetX;
-            let currentTargetY = targetY;
+      let currentTargetX = targetX;
+      let currentTargetY = targetY;
 
-            if (bulletType === 'tower-bullet') {
-                currentTargetX = tankX + tankImage.offsetWidth / 2;
-                currentTargetY = tankY + tankImage.offsetHeight / 2;
-            }
+      if (bulletType === 'tower-bullet') {
+        currentTargetX = tankX + tankImage.offsetWidth / 2;
+        currentTargetY = tankY + tankImage.offsetHeight / 2;
+      }
 
-            const deltaX = currentTargetX - startX;
-            const deltaY = currentTargetY - startY;
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            const duration = distance / bulletSpeed;
-            const progress = Math.min(elapsed / (duration * 100), 1);
+      const deltaX = currentTargetX - startX;
+      const deltaY = currentTargetY - startY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const duration = distance / bulletSpeed;
+      const progress = Math.min(elapsed / (duration * 100), 1);
 
-            let x = startX + (deltaX * progress);
-            let y = startY + (deltaY * progress);
+      let x = startX + (deltaX * progress);
+      let y = startY + (deltaY * progress);
 
-            bullet.style.left = `${x}px`;
-            bullet.style.top = `${y}px`;
+      bullet.style.left = `${x}px`;
+      bullet.style.top = `${y}px`;
 
-            if (bulletType === 'tower-bullet') {
-              if (tankCurrentHP <= 0 || isTankInvulnerable) {
-                bullet.remove();
-                return;
-              }
-              if (checkTankCollisionWithBullet(x, y)) {
-                  bullet.remove();
-                  takeDamage('tank', turretDamage);
-                  return;
-              }
-            } else if (bulletType === 'tank-bullet') {
-              let hitTurret = false;
-              turrets.forEach((turret, index) => {
-                  if (turretCurrentHPs[index] > 0 && isPointInPolygon([x, y], turretCollisionVertices[turret.id])) {
-                    bullet.remove();
-                    takeDamage('turret', tankDamage, index);
-                    gainExp(expForTurretHit);
-                    hitTurret = true;
-                  }
-              });
-              if (hitTurret) return;
-            }
-
-            if (progress < 1) {
-                requestAnimationFrame(animateBullet);
-            } else {
-                bullet.remove();
-            }
+      if (bulletType === 'tower-bullet') {
+        if (tankCurrentHP <= 0 || isTankInvulnerable) {
+          bullet.remove();
+          return;
         }
+        if (checkTankCollisionWithBullet(x, y)) {
+          bullet.remove();
+          takeDamage('tank', turretDamage);
+          return;
+        }
+      } else if (bulletType === 'tank-bullet') {
+        let hitTurret = false;
+        turrets.forEach((turret, index) => {
+          if (turretCurrentHPs[index] > 0 && isPointInPolygon([x, y], turretCollisionVertices[turret.id])) {
+            bullet.remove();
+            takeDamage('turret', tankDamage, index);
+            gainExp(expForTurretHit);
+            hitTurret = true;
+          }
+        });
+        if (hitTurret) return;
+      }
 
+      if (progress < 1) {
         requestAnimationFrame(animateBullet);
+      } else {
+        bullet.remove();
+      }
     }
+
+    requestAnimationFrame(animateBullet);
+  }
 
   function rotateElement(element, targetAngle, speed, callback) {
     const startAngle = parseFloat(element.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1')) || 0;
@@ -338,14 +337,13 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     requestAnimationFrame(animateRotation);
   }
   
-
-    function rotateTankAndFrame(targetAngle) {
-      isMoving = false;
-      rotateElement(tankImage, targetAngle, tankRotationSpeed);
-      rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
-        isMoving = true;
-      });  
-    }
+  function rotateTankAndFrame(targetAngle) {
+    isMoving = false;
+    rotateElement(tankImage, targetAngle, tankRotationSpeed);
+    rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
+      isMoving = true;
+    });  
+  }
 
   function takeDamage(target, damage, turretIndex = null) {
     if (isTankInvulnerable)
@@ -371,7 +369,7 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
           miniMapMarker.remove();
         turrets[turretIndex].remove();
         guns[turretIndex].remove();
-        delete turretCollisionVertices[turrets[turretIndex].id];
+        delete turretCollisionVertices[turretId];
       }
     }
   }
@@ -396,21 +394,21 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     }, invulnerabilityDuration);
   }
 
-    function rotateGun(gun, turret, originalGunRotation) {
-        if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
-            const tankCenterX = tankX + tankImage.offsetWidth / 2;
-            const tankCenterY = tankY + tankImage.offsetHeight / 2;
-            const gunCenterX = turret.offsetLeft + 19;
-            const gunCenterY = turret.offsetTop + 19;
+  function rotateGun(gun, turret, originalGunRotation) {
+    if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
+      const tankCenterX = tankX + tankImage.offsetWidth / 2;
+      const tankCenterY = tankY + tankImage.offsetHeight / 2;
+      const gunCenterX = turret.offsetLeft + 19;
+      const gunCenterY = turret.offsetTop + 19;
 
-            const deltaX = tankCenterX - gunCenterX;
-            const deltaY = tankCenterY - gunCenterY;
-            const targetAngle = Math.atan2(deltaY, deltaX) - Math.PI / 2;
-            rotateElement(gun, targetAngle, 0.01);
-        } else {
-          rotateElement(gun, originalGunRotation, 0.01);
-        }
+      const deltaX = tankCenterX - gunCenterX;
+      const deltaY = tankCenterY - gunCenterY;
+      const targetAngle = Math.atan2(deltaY, deltaX) - Math.PI / 2;
+      rotateElement(gun, targetAngle, 0.01);
+    } else {
+      rotateElement(gun, originalGunRotation, 0.01);
     }
+  }
 
   function isWithinRange(fireRange, turret) {
     const tankCenterX = tankX + tankImage.offsetWidth / 2;
@@ -434,6 +432,17 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     const tankBottom = tankTop + tankImage.offsetHeight;
 
     return bulletX >= tankLeft && bulletX <= tankRight && bulletY >= tankTop && bulletY <= tankBottom;
+  }
+
+  // Utility collision check for any element (used for mini collision)
+  function checkCollisionWithElement(element, bulletX, bulletY) {
+    const rect = element.getBoundingClientRect();
+    const mapRect = map.getBoundingClientRect();
+    const left = rect.left - mapRect.left;
+    const top = rect.top - mapRect.top;
+    const right = left + rect.width;
+    const bottom = top + rect.height;
+    return bulletX >= left && bulletX <= right && bulletY >= top && bulletY <= bottom;
   }
 
   function displayVertices(vertices, size) {
@@ -481,7 +490,7 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     updateTankHPBar();
     damageInput.textContent = tankDamage + " DPS";
     rangeInput.textContent = tankFireRange + " meters";
-    armorInput.textContent = Math.round(tankArmor*100) + "%";
+    armorInput.textContent = Math.round(tankArmor * 100) + "%";
     speedInput.textContent = tankSpeed * SPEED_DISPLAY_MULTIPLIER  + " kph";
     usernameInput.textContent = username + "\u00A0" + tankLevel;
     updateUpgradeImagesVisibility();
@@ -511,189 +520,321 @@ function isCollidingWithTurret(tankCenterX, tankCenterY) {
     document.getElementById('hp-value').textContent = `${Math.round(tankCurrentHP)}/${tankMaxHP}`;
   }
 
-    function findClosestTurret() {
-        let closestTurret = null;
-        let closestDistance = Infinity;
-        const tankCenterX = tankX + tankImage.offsetWidth / 2;
-        const tankCenterY = tankY + tankImage.offsetHeight / 2;
+  function findClosestTurret() {
+    let closestTurret = null;
+    let closestDistance = Infinity;
+    const tankCenterX = tankX + tankImage.offsetWidth / 2;
+    const tankCenterY = tankY + tankImage.offsetHeight / 2;
 
-        turrets.forEach((turret, index) => {
-          if (turretCurrentHPs[index] <= 0 || turret.classList.contains(teamColor)) 
-            return;
+    turrets.forEach((turret, index) => {
+      if (turretCurrentHPs[index] <= 0 || turret.classList.contains(teamColor)) 
+        return;
 
-            const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-            const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-            const deltaX = turretCenterX - tankCenterX;
-            const deltaY = turretCenterY - tankCenterY;
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+      const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+      const deltaX = turretCenterX - tankCenterX;
+      const deltaY = turretCenterY - tankCenterY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-            if (distance <= tankFireRange && distance < closestDistance) {
-                closestTurret = turret;
-                closestDistance = distance;
-            }
-        });
-
-        return [closestTurret, closestDistance];
-    }
-
-    const turretCollisionVertices = {};
-    turrets.forEach((turret) => {
-        const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-        const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-        const vertices = calculateOctagonVertices(19, turretCenterX-2, turretCenterY-2);
-        turretCollisionVertices[turret.id] = vertices;
-        // displayVertices(vertices, 3);
+      if (distance <= tankFireRange && distance < closestDistance) {
+        closestTurret = turret;
+        closestDistance = distance;
+      }
     });
+
+    return [closestTurret, closestDistance];
+  }
+
+  const turretCollisionVertices = {};
+  turrets.forEach((turret) => {
+    const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+    const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+    const vertices = calculateOctagonVertices(19, turretCenterX - 2, turretCenterY - 2);
+    turretCollisionVertices[turret.id] = vertices;
+    // displayVertices(vertices, 3);
+  });
 
   setInterval(() => {
     gainExp(1);
   }, expIncrementInterval);
-    
-    let tankFireCounter = 0;
 
-    function gameLoop() {
-        moveTank();
-        const [closestTurret, closestDistance] = findClosestTurret();
-        
-        // Handle tank rotation
-        if (closestTurret && closestDistance <= tankFireRange) {
-            // When in range of turret, aim at it
-            const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
-            const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
-            const tankTopX = tankX + tankImage.offsetWidth / 2;
-            const tankTopY = tankY + tankImage.offsetHeight / 2;
-            const deltaX = turretCenterX - tankTopX;
-            const deltaY = turretCenterY - tankTopY;
-            const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-            
-            isUpperFrameRotating = true;
-            rotateElement(tankImage, targetAngle, tankRotationSpeed);
-            
-            // Fire at turret when in range
-            if (tankFireCounter % tankFireInterval === 0)
-                fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
-              
-        } else if (isUpperFrameRotating) {
-            // When out of range, align tank with frame
-            const deltaX = targetX - tankX;
-            const deltaY = targetY - tankY;
-            const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-            isUpperFrameRotating = false;
-            rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {
-            });
-        }
+  let tankFireCounter = 0;
 
-        tankFireCounter++;
+  let redMinis = [];
+  const redMiniPath = [[60, 520], [60, 30], [30, 30], [250, 30]];
+  const miniSpeed = 32 / SPEED_DISPLAY_MULTIPLIER;
 
-        guns.forEach((gun, index) => {
-            rotateGun(gun, turrets[index], originalGunRotations[index]);
-        });
+  function spawnRedMini() {
+    const mini = {
+      container: document.createElement('div'),
+      blades: document.createElement('img'),
+      face: document.createElement('img'),
+      hpBarContainer: document.createElement('div'),
+      hpBar: document.createElement('div'),
+      health: 120,
+      maxHealth: 120,
+      path: redMiniPath,
+      currentIndex: 0,
+      isRotating: false,
+      isMoving: false,
+      speed: miniSpeed,
+      rotationSpeed: frameRotationSpeed,
+      update: function() {
+        if (this.health <= 0) return;
 
-        setTimeout(gameLoop, frameInterval);
-    }
-    
-    turrets.forEach((turret, index) => {
-        setInterval(() => {
-            if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
-                const tankCenterX = tankX + tankImage.offsetWidth / 2;
-                const tankCenterY = tankY + tankImage.offsetHeight / 2;
-                const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-                const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-                fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
-            }
-        }, turretFireInterval);
-    });
-
-    setInterval(() => {
-      regenerateHealth();
-    }, tankHealthRegenerationInterval);
-
-    let lastClickTime = 0;
-    const CLICK_DELAY = 100; // 100ms minimum delay between clicks
-
-    map.addEventListener('click', (e) => {
-        const currentTime = Date.now();
-        if (currentTime - lastClickTime < CLICK_DELAY) {
-            return; // Ignore clicks that are too close together
-        }
-        lastClickTime = currentTime;
-
-        const mapRect = map.getBoundingClientRect();
-        const tankRect = tankImage.getBoundingClientRect();
-        targetX = e.clientX - mapRect.left - tankRect.width / 2;
-        targetY = e.clientY - mapRect.top - tankRect.height / 2;
-
-        const deltaX = targetX - tankX;
-        const deltaY = targetY - tankY;
-        const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-        if (!isUpperFrameRotating){
-            rotateTankAndFrame(targetAngle);
-        } 
-        else {
-          isMoving = false;
-          rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
-              isMoving = true;
+        // If not already rotating or moving and there is a next coordinate, begin rotation.
+        if (!this.isRotating && !this.isMoving && this.currentIndex < this.path.length - 1) {
+          const nextTarget = this.path[this.currentIndex + 1];
+          const currentX = parseFloat(this.container.style.left);
+          const currentY = parseFloat(this.container.style.top);
+          const deltaX = nextTarget[0] - currentX;
+          const deltaY = nextTarget[1] - currentY;
+          const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+          this.isRotating = true;
+          rotateElement(this.face, targetAngle, this.rotationSpeed, () => {
+            this.isRotating = false;
+            this.isMoving = true;
           });
         }
-    });
 
-    map.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-    });
-
-    document.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            isMoving = false;
-            targetX = tankX;
-            targetY = tankY;
+        // If moving, update position toward the next waypoint.
+        if (this.isMoving) {
+          const nextTarget = this.path[this.currentIndex + 1];
+          const currentX = parseFloat(this.container.style.left);
+          const currentY = parseFloat(this.container.style.top);
+          const deltaX = nextTarget[0] - currentX;
+          const deltaY = nextTarget[1] - currentY;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          if (distance > this.speed) {
+            const moveX = (deltaX / distance) * this.speed;
+            const moveY = (deltaY / distance) * this.speed;
+            this.container.style.left = `${currentX + moveX}px`;
+            this.container.style.top = `${currentY + moveY}px`;
+          } else {
+            // Snap to target and prepare for next segment.
+            this.container.style.left = `${nextTarget[0]}px`;
+            this.container.style.top = `${nextTarget[1]}px`;
+            this.isMoving = false;
+            this.currentIndex++;
+            // If reached final coordinate, mini will just stop.
+          }
         }
-    });
-
-    function handleUpgrade(skillIdx) {
-      if (upgradePoints > 0 && skillLevels[skillIdx-1] < 10) {
-        upgradePoints--;
-        skillLevels[skillIdx-1]++;
-        
-        // Update skill count display
-        const skillCountElement = document.getElementById(`upgrade-count-${skillIdx}`);
-        if (skillCountElement) {
-          skillCountElement.textContent = skillLevels[skillIdx-1];
+        // Update the HP bar width.
+        const hpPercentage = Math.max(this.health / this.maxHealth, 0) * 100;
+        this.hpBar.style.width = `${hpPercentage}%`;
+      },
+      takeDamage: function(damage) {
+        this.health -= damage;
+        if (this.health <= 0) {
+          // Remove mini from the map.
+          this.container.remove();
         }
-        
-        updateUpgradeImagesVisibility();
       }
+    };
+
+    // Setup container style.
+    mini.container.style.position = 'absolute';
+    mini.container.style.left = `${redMiniPath[0][0]}px`;
+    mini.container.style.top = `${redMiniPath[0][1]}px`;
+    mini.container.style.width = '18px';
+    mini.container.style.height = '18px';
+    mini.container.style.zIndex = 1000;
+
+    // Setup mini image.
+    mini.blades.src = 'imgs/mini-blades.png';
+    mini.blades.style.width = '100%';
+    mini.blades.style.height = '100%';
+    mini.blades.style.transform = 'rotate(0rad)';
+    mini.blades.style.zIndex = '1';
+    mini.container.appendChild(mini.blades);
+
+    // Add red side mini image centered with a higher z-index.
+    mini.face.src = 'imgs/red-side-mini.png';
+    mini.face.style.width = '12px';
+    mini.face.style.height = '12px';
+    mini.face.style.position = 'absolute';
+    // Centering the smaller image in the 18px container:
+    mini.face.style.left = '3px';
+    mini.face.style.top = '3px';
+    mini.face.style.zIndex = '2';
+    mini.container.appendChild(mini.face);
+
+    // Setup HP bar container (displayed just above the mini).
+    mini.hpBarContainer.style.position = 'absolute';
+    mini.hpBarContainer.style.bottom = '100%';
+    mini.hpBarContainer.style.left = '0';
+    mini.hpBarContainer.style.width = '100%';
+    mini.hpBarContainer.style.height = '2px';
+    mini.hpBarContainer.style.backgroundColor = 'gray';
+
+    // Setup HP bar.
+    mini.hpBar.style.width = '100%';
+    mini.hpBar.style.height = '100%';
+    mini.hpBar.style.backgroundColor = 'green';
+    mini.hpBarContainer.appendChild(mini.hpBar);
+    mini.container.appendChild(mini.hpBarContainer);
+
+    map.appendChild(mini.container);
+    redMinis.push(mini);
+  }
+
+  spawnRedMini();
+  setInterval(spawnRedMini, 15000);
+
+  function gameLoop() {
+    moveTank();
+    const [closestTurret, closestDistance] = findClosestTurret();
+    
+    // Handle tank rotation
+    if (closestTurret && closestDistance <= tankFireRange) {
+      // When in range of turret, aim at it
+      const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
+      const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
+      const tankTopX = tankX + tankImage.offsetWidth / 2;
+      const tankTopY = tankY + tankImage.offsetHeight / 2;
+      const deltaX = turretCenterX - tankTopX;
+      const deltaY = turretCenterY - tankTopY;
+      const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+      
+      isUpperFrameRotating = true;
+      rotateElement(tankImage, targetAngle, tankRotationSpeed);
+      
+      // Fire at turret when in range
+      if (tankFireCounter % tankFireInterval === 0)
+        fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
+      
+    } else if (isUpperFrameRotating) {
+      // When out of range, align tank with frame
+      const deltaX = targetX - tankX;
+      const deltaY = targetY - tankY;
+      const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+      isUpperFrameRotating = false;
+      rotateElement(tankImage, targetAngle, tankRotationSpeed, () => {});
     }
 
-    upgradeImages[0].addEventListener('click', () => handleUpgrade(1));
-    upgradeImages[1].addEventListener('click', () => handleUpgrade(2));
-    upgradeImages[2].addEventListener('click', () => handleUpgrade(3));
+    tankFireCounter++;
 
-    tank.style.left = `${tankX}px`;
-    tank.style.top = `${tankY}px`;
+    guns.forEach((gun, index) => {
+      rotateGun(gun, turrets[index], originalGunRotations[index]);
+    });
 
+    redMinis.forEach((mini) => {
+      if (mini.health > 0) 
+        mini.update();
+    });
+
+    setTimeout(gameLoop, frameInterval);
+  }
+  
+  turrets.forEach((turret, index) => {
+    setInterval(() => {
+      if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
+        const tankCenterX = tankX + tankImage.offsetWidth / 2;
+        const tankCenterY = tankY + tankImage.offsetHeight / 2;
+        const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+        const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+        fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
+      }
+    }, turretFireInterval);
+  });
+
+  setInterval(() => {
+    regenerateHealth();
+  }, tankHealthRegenerationInterval);
+
+  let lastClickTime = 0;
+  const CLICK_DELAY = 100; // 100ms minimum delay between clicks
+
+  map.addEventListener('click', (e) => {
+    const currentTime = Date.now();
+    if (currentTime - lastClickTime < CLICK_DELAY) {
+      return; // Ignore clicks that are too close together
+    }
+    lastClickTime = currentTime;
+
+    const mapRect = map.getBoundingClientRect();
+    const tankRect = tankImage.getBoundingClientRect();
+    targetX = e.clientX - mapRect.left - tankRect.width / 2;
+    targetY = e.clientY - mapRect.top - tankRect.height / 2;
+
+    const deltaX = targetX - tankX;
+    const deltaY = targetY - tankY;
+    const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
+    if (!isUpperFrameRotating){
+      rotateTankAndFrame(targetAngle);
+    } 
+    else {
+      isMoving = false;
+      rotateElement(frameImage, targetAngle, frameRotationSpeed, () => {
+        isMoving = true;
+      });
+    }
+  });
+
+  map.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      isMoving = false;
+      targetX = tankX;
+      targetY = tankY;
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.shiftKey && e.key >= "1" && e.key <= "3") {
+      const numberPressed = parseInt(e.key, 10);
+      console.log(numberPressed);
+      handleUpgrade(numberPressed);
+    }
+  });
+
+  function handleUpgrade(skillIdx) {
+    if (upgradePoints > 0 && skillLevels[skillIdx-1] < 10) {
+      upgradePoints--;
+      skillLevels[skillIdx-1]++;
+      
+      // Update skill count display
+      const skillCountElement = document.getElementById(`upgrade-count-${skillIdx}`);
+      if (skillCountElement) {
+        skillCountElement.textContent = skillLevels[skillIdx-1];
+      }
+      
+      updateUpgradeImagesVisibility();
+    }
+  }
+
+  upgradeImages[0].addEventListener('click', () => handleUpgrade(1));
+  upgradeImages[1].addEventListener('click', () => handleUpgrade(2));
+  upgradeImages[2].addEventListener('click', () => handleUpgrade(3));
+
+  tank.style.left = `${tankX}px`;
+  tank.style.top = `${tankY}px`;
 
   if (tankType === 'shouty') {
-        const upgrades = [
-            { id: 'item-1', imageSrc: 'imgs/shouty-skill-1.png' },
-            { id: 'item-2', imageSrc: 'imgs/shouty-skill-2.png' },
-            { id: 'item-3', imageSrc: 'imgs/shouty-skill-3.png' }
-        ];
+    const upgrades = [
+      { id: 'item-1', imageSrc: 'imgs/shouty-skill-1.png' },
+      { id: 'item-2', imageSrc: 'imgs/shouty-skill-2.png' },
+      { id: 'item-3', imageSrc: 'imgs/shouty-skill-3.png' }
+    ];
 
-        upgrades.forEach(upgrade => {
-            const upgradeElement = document.getElementById(upgrade.id);
-            if (upgradeElement) {
-                const imgElement = document.createElement('img');
-                imgElement.src = upgrade.imageSrc;
-                imgElement.classList.add('upgrade-image');
-                upgradeElement.appendChild(imgElement);
-            }
-        });
-    }
-    
-    updateCameraPosition();
-    gameLoop();
+    upgrades.forEach(upgrade => {
+      const upgradeElement = document.getElementById(upgrade.id);
+      if (upgradeElement) {
+        const imgElement = document.createElement('img');
+        imgElement.src = upgrade.imageSrc;
+        imgElement.classList.add('upgrade-image');
+        upgradeElement.appendChild(imgElement);
+      }
+    });
+  }
+  
+  updateCameraPosition();
+  gameLoop();
 });
