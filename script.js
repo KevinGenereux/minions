@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isMoving) {
       const deltaX = targetX - tankX;
       const deltaY = targetY - tankY;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const distance = Math.hypot(deltaX, deltaY);
 
       if (distance > tankSpeed) {
         const newTankX = tankX + (deltaX / distance) * tankSpeed;
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const deltaX = currentTargetX - startX;
       const deltaY = currentTargetY - startY;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const distance = Math.hypot(deltaX, deltaY);
       const duration = distance / bulletSpeed;
       const progress = Math.min(elapsed / (duration * 100), 1);
 
@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
       targets.blue.forEach(target => {
         let dx = target.centerX - sourceCenterX;
         let dy = target.centerY - sourceCenterY;
-        let distance = Math.sqrt(dx * dx + dy * dy);
+        let distance = Math.hypot(dx, dy);
         if (distance < closestDistance){
           closestDistance = distance;
           closestTarget = target.target;
@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
       targets.red.forEach(target => {
         let dx = target.centerX - sourceCenterX;
         let dy = target.centerY - sourceCenterY;
-        let distance = Math.sqrt(dx * dx + dy * dy);
+        let distance = Math.hypot(dx, dy);
         if (distance < closestDistance){
           closestDistance = distance;
           closestTarget = target.target;
@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
       const deltaX = turretCenterX - tankCenterX;
       const deltaY = turretCenterY - tankCenterY;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const distance = Math.hypot(deltaX, deltaY);
 
       if (distance <= tankFireRange && distance < closestDistance) {
         closestTurret = turret;
@@ -696,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const currentY = parseFloat(this.container.style.top);
           const deltaX = nextTarget[0] - currentX;
           const deltaY = nextTarget[1] - currentY;
-          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          const distance = Math.hypot(deltaX, deltaY);
           if (distance > this.speed) {
             const moveX = (deltaX / distance) * this.speed;
             const moveY = (deltaY / distance) * this.speed;
