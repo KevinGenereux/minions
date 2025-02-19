@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let username = "Player";
   let tankExp = 0;
   let tankLevel = 1;
-  let upgradePoints = 3;
+  let upgradePoints = 0;
   let missileRange = 100;
   let missileDamage = 50;
   let mortarRange = 100;
@@ -139,9 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateMiniMap(scrollTop) {
     tankMarker.style.left = `${tankX * scaleFactorX}px`;
     tankMarker.style.top = `${tankY * scaleFactorY}px`;
-
-    cameraViewMarker.style.top = `${scrollTop * scaleFactorY}px`;
-    cameraViewMarker.style.height = `${frame.clientHeight * scaleFactorY}px`;
+    if (!cameraLocked) {
+      cameraViewMarker.style.top = `${scrollTop * scaleFactorY}px`;
+      cameraViewMarker.style.height = `${frame.clientHeight * scaleFactorY}px`;
+    }
   }
 
   function isCollidingWithWall(tankCenterX, tankCenterY) {
@@ -216,8 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!cameraLocked){
       scrollTop = updateCameraPosition();
-      updateMiniMap(scrollTop);
     }
+    updateMiniMap(scrollTop);
   }
 
   function updateCameraPosition() {
@@ -452,8 +453,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let sourceCenterX = source.offsetLeft + source.offsetWidth / 2;
     let sourceCenterY = source.offsetTop + source.offsetHeight / 2;
     let sourceEnemyColor = source.classList.contains('red') ? 'blue' : 'red';
-    if(source.id === 'blue-turret-1')
-      // console.log(sourceEnemyColor);
     
     if (sourceEnemyColor === 'blue'){
       targets.blue.forEach(target => {
@@ -489,12 +488,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // UPDATED: Rotate the turret's gun toward its closest enemy target if one is in range.
   function rotateGun(gun, turret, originalGunRotation) {
     const targetInfo = findClosestTarget(turret);
-    if (turret.id === 'blue-turret-1' && count < 5) {
-      console.log(targetInfo);
-      if (count === 1)
-        console.log(targets);
-      count++;
-    }
     if (targetInfo && targetInfo.distance <= turretFireRange) {
       const gunCenterX = turret.offsetLeft + 19;
       const gunCenterY = turret.offsetTop + 19;
@@ -561,9 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function regenerateHealth() {
     if (tankCurrentHP < tankMaxHP) {
       tankCurrentHP = Math.min(tankCurrentHP + tankHealthRegeneration, tankMaxHP);
-      const hpPercentage = (tankCurrentHP / tankMaxHP) * 100;
-      tankHPBar.style.width = `${hpPercentage}%`;
-      hpDisplay.textContent = `${Math.round(tankCurrentHP)}/${tankMaxHP}`;
+      updateTankHPBar();
     }
   }
 
@@ -956,7 +947,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const upgradeMessageKeys = ["upgrade-1", "upgrade-2", "upgrade-3"];
   const skillMessageKeys = ["skill-1", "skill-2", "skill-3"];
   const skillImages = document.querySelectorAll('.skill-image');
-  console.log(skillImages);
   bindMessageToImages(upgradeMessageKeys, upgradeImages, originalSkillDescription);
   bindMessageToImages(skillMessageKeys, skillImages, originalSkillDescription);
 
@@ -994,7 +984,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clickY = e.clientY - rect.top; // Y coordinate within mini-map
     // Convert mini-map Y coordinate to map scrollTop value.
     let targetScrollTop = clickY / scaleFactorY - frame.clientHeight / 2;
-    console.log(targetScrollTop);
     targetScrollTop = Math.max(0, Math.min(targetScrollTop, map.offsetHeight - frame.clientHeight));
     animateCameraScroll(targetScrollTop, 900);
   });
