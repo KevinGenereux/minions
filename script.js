@@ -1010,61 +1010,77 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const skillMessages = {
-                       "splodge": {"skill-1": "Increases your unit's armor by 4 for three secs. 20 secs cooldown.",
-                                   "skill-2": "Repairs your unit by 20 hp over 10 secs. 20 secs cooldown.",
-                                   "skill-3": "Pernamently inceases the sight range of your unit by 10 m.",
-                                   "upgrade-1": "Increases armor by a further 2.",
-                                   "upgrade-2": "Increases heal by a further 20 hp.",
-                                   "upgrade-3": "Increases sight by 2.5 m"},
- 
-                        "basher": {"skill-1": "Increases your unit's attack speed by 20% over 6 secs. 12 secs cooldown.",
-                                   "skill-2": "Equips your unit with armor piercing shells for 5 secs seconds. 20 secs cooldown.",
-                                   "skill-3": "Permanently increases the shot damage of your unit by 1.5.",
-                                   "upgrade-1": "Increases attack speed by a further +5%.",
-                                   "upgrade-2": "Increases armor piercing by 1.",
-                                   "upgrade-3": "Increases damage by 1.5."},
+  "splodge": {
+    "skill-1": "Increases your unit's armor by <b>4 armor</b> for three secs. <b>20 secs</b> cooldown.",
+    "skill-2": "Repairs your unit by <b>20 hp</b> over <b>10 secs</b>. <b>20 secs</b> cooldown.",
+    "skill-3": "Pernamently inceases the sight range of your unit by <b>10 m</b>.",
+    "upgrade-1": "Increases armor by a further <b>2 armor</b>.",
+    "upgrade-2": "Increases heal by a further <b>20 hp</b>.",
+    "upgrade-3": "Increases sight by <b>2.5 m</b>"
+  },
 
-                        "doc": {"skill-1": "Repairs all allied units within 70m by 30hp over 3 secs. 15 secs cooldown.",
-                                   "skill-2": "Increases your unit's sight range to 50m for 5 secs. 15 secs cooldown.",
-                                   "skill-3": "Permanently increases the speed of your unit by 1.5kph.",
-                                   "upgrade-1": "Increases heal by a further 6hp and range by a further 1m.",
-                                   "upgrade-2": "Increases sight by a further 5m. Reduces cooldown by 0.5 secs.",
-                                   "upgrade-3": "Increases speed by 1.2kph."},
+  "basher": {
+    "skill-1": "Increases your unit's attack speed by <b>20%</b> over <b>6 secs</b>. <b>12 secs</b> cooldown.",
+    "skill-2": "Equips your unit with armor piercing shells for <b>5 secs</b> seconds. <b>20 secs</b> cooldown.",
+    "skill-3": "Permanently increases the shot damage of your unit by <b>1.5 damage</b>.",
+    "upgrade-1": "Increases attack speed by a further +<b>5%</b>.",
+    "upgrade-2": "Increases armor piercing by <b>1 armor piercing</b>.",
+    "upgrade-3": "Increases damage by <b>1.5 damage</b>."
+  },
 
-                        "stinger":  {"skill-1": "A hard hitting projectile that stuns an enemy for 2 secs seconds. 20 secs cooldown.",
-                                   "skill-2": "Slows enemy movement by -26% and attack speed by -20%. Lasts 5 secs. 20 secs cooldown.",
-                                   "skill-3": "Increases your unit's attack by +15% and speed by 4.5kph for 5 secs. 15 secs cooldown.",
-                                   "upgrade-1": "Increases duration by 0.1 secs. Reduces cooldown by 1 secs.",
-                                   "upgrade-2": "Increases slow by -10% and reduces attack speed by a further +5%.",
-                                   "upgrade-3": "Increases attack speed by a further +4% and move speed by a further 0.9kph."},
- 
-                       "shouty":  {"skill-1": "Long range missile with 30 damage and 130m range. Ignores armor. 0.82 secs cooldown.",
-                                   "skill-2": "A long range mortar with 30 damage, 150m range and a 40 radius. 20 secs cooldown.",
-                                   "skill-3": "Instantly reloads the Missile and Mortar. 60 secs cooldown.",
-                                   "upgrade-1": "Increase damage by 6.",
-                                   "upgrade-2": "Increases mortar damage by 9 and splash by 5.",
-                                   "upgrade-3": "Reduces cooldown by 4 secs."},
-   
-                       "sneaky":  {"skill-1": "A short range grenade with 49 damage and <74m range. 8 secs cooldown.",
-                                   "skill-2": "Teleports you 120m in the direction you choose. 28 secs cooldown.",
-                                   "skill-3": "Pernamently inceases the armor level of your tank by 10%.",
-                                   "upgrade-1": "Increases danage by 6m and range by 1m.",
-                                   "upgrade-2": "Reduces cooldown by 2 secs.",
-                                   "upgrade-3": "Increases armor level by 1.5"},
+  "doc": {
+    "skill-1": "Repairs all allied units within <b>70 m</b> by <b>30 hp</b> over <b>3 secs</b>. <b>15 secs</b> cooldown.",
+    "skill-2": "Increases your unit's sight range to <b>50 m</b> for <b>5 secs</b>. <b>15 secs</b> cooldown.",
+    "skill-3": "Permanently increases the speed of your unit by <b>1.5 kph</b>.",
+    "upgrade-1": "Increases heal by a further <b>6 hp</b> and range by a further <b>1 m</b>.",
+    "upgrade-2": "Increases sight by a further <b>5 m</b>. Reduces cooldown by <b>0.5 secs</b>.",
+    "upgrade-3": "Increases speed by <b>1.2 kph</b>."
+  },
 
-                      "dash":  {"skill-1": "Massively increases your unit's attack speed by +100% for 2.5 secs. 30 secs cooldown.",
-                                   "skill-2": "Makes you invisible and move more quickly for 3 secs, or until you attack an enemy. 20 secs cooldown.",
-                                   "skill-3": "Permanently improves the repair ability of your unit by 0.4hp per second.",
-                                   "upgrade-1": "Increase attack speed by a further +20%. Reduces cooldown by 1 secs.",
-                                   "upgrade-2": "Increases duration by 0.4 secs. Reduces cooldown by 1 secs.",
-                                   "upgrade-3": "Increases repair by 0.2hp per second."},
+  "stinger": {
+    "skill-1": "A hard hitting projectile that stuns an enemy for <b>2 secs</b> seconds. <b>20 secs</b> cooldown.",
+    "skill-2": "Slows enemy movement by -<b>26%</b> and attack speed by -<b>20%</b>. Lasts <b>5 secs</b>. <b>20 secs</b> cooldown.",
+    "skill-3": "Increases your unit's attack by +<b>15%</b> and speed by <b>4.5 kph</b> for <b>5 secs</b>. <b>15 secs</b> cooldown.",
+    "upgrade-1": "Increases duration by <b>0.1 secs</b>. Reduces cooldown by <b>1 secs</b>.",
+    "upgrade-2": "Increases slow by -<b>10%</b> and reduces attack speed by a further +<b>5%</b>.",
+    "upgrade-3": "Increases attack speed by a further +<b>4%</b> and move speed by a further <b>0.9 kph</b>."
+  },
 
-                      "cutter":  {"skill-1": "Increases your unit's speed by 30kph and attack by 5 for 1.5 secs seconds. 5 secs cooldown.",
-                                   "skill-2": "Releases a burst of energy that stuns enemies within 60m for 2 secs. 12 secs cooldown.",
-                                   "skill-3": "Permanently enables your unit to steal energy when it attacks. 5% of this energy will repair you.",
-                                   "upgrade-1": "Increases duration by a further 0.1 secs and attack by a further 2.",
-                                   "upgrade-2": "Increases duration by 0.2 secs. Reduces cooldown by 0.5 secs.",
-                                   "upgrade-3": "Increases percentage by 4%."}
- 
-                       
+  "shouty": {
+    "skill-1": "Long range missile with <b>30 damage</b> and <b>130 m</b> range. Ignores armor. <b>0.82 secs</b> cooldown.",
+    "skill-2": "A long range mortar with <b>30 damage</b>, <b>150 m</b> range and a <b>40 radius</b>. <b>20 secs</b> cooldown.",
+    "skill-3": "Instantly reloads the Missile and Mortar. <b>60 secs</b> cooldown.",
+    "upgrade-1": "Increase damage by <b>6 damage</b>.",
+    "upgrade-2": "Increases mortar damage by <b>9 damage</b> and splash by <b>5 radius</b>.",
+    "upgrade-3": "Reduces cooldown by <b>4 secs</b>."
+  },
+
+  "sneaky": {
+    "skill-1": "A short range grenade with <b>49 damage</b> and <<b>74 m</b> range. <b>8 secs</b> cooldown.",
+    "skill-2": "Teleports you <b>120 m</b> in the direction you choose. <b>28 secs</b> cooldown.",
+    "skill-3": "Pernamently inceases the armor level of your tank by <b>10%</b>.",
+    "upgrade-1": "Increases danage by <b>6 m</b> and range by <b>1 m</b>.",
+    "upgrade-2": "Reduces cooldown by <b>2 secs</b>.",
+    "upgrade-3": "Increases armor level by <b>1.5</b>"
+  },
+
+  "dash": {
+    "skill-1": "Massively increases your unit's attack speed by +<b>100%</b> for <b>2.5 secs</b>. <b>30 secs</b> cooldown.",
+    "skill-2": "Makes you invisible and move more quickly for <b>3 secs</b>, or until you attack an enemy. <b>20 secs</b> cooldown.",
+    "skill-3": "Permanently improves the repair ability of your unit by <b>0.4 hp</b> per second.",
+    "upgrade-1": "Increase attack speed by a further +<b>20%</b>. Reduces cooldown by <b>1 secs</b>.",
+    "upgrade-2": "Increases duration by <b>0.4 secs</b>. Reduces cooldown by <b>1 secs</b>.",
+    "upgrade-3": "Increases repair by <b>0.2 hp</b> per second."
+  },
+
+  "cutter": {
+    "skill-1": "Increases your unit's speed by <b>30 kph</b> and attack by <b>5 damage</b> for <b>1.5 secs</b> seconds. <b>5 secs</b> cooldown.",
+    "skill-2": "Releases a burst of energy that stuns enemies within <b>60 m</b> for <b>2 secs</b>. <b>12 secs</b> cooldown.",
+    "skill-3": "Permanently enables your unit to steal energy when it attacks. <b>5%</b> of this energy will repair you.",
+    "upgrade-1": "Increases duration by a further <b>0.1 secs</b> and attack by a further <b>2 damage</b>.",
+    "upgrade-2": "Increases duration by <b>0.2 secs</b>. Reduces cooldown by <b>0.5 secs</b>.",
+    "upgrade-3": "Increases percentage by <b>4%</b>."
+  }
+
+
 };
