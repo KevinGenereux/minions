@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const enemyColor = teamColor == 'red' ? 'blue' : 'red';
   const tankImage = document.getElementById('tank-image');
   const frameImage = document.getElementById('frame-image');
+  const skillDescription = document.getElementById('skill-description');
   const frame = document.getElementById('frame');
   const turrets = document.querySelectorAll('.turret');
   const guns = document.querySelectorAll('.gun-image');
@@ -71,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let expIncrementInterval = 500;
   const expPerLevel = 30;
   const expForTurretHit = 3;
+
+  let cameraLocked = false;
   
   const damageInput = document.getElementById('damage-value');
   const rangeInput = document.getElementById('range-value');
@@ -211,8 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
       tank.style.top = `${tankY}px`;
     }
 
-    scrollTop = updateCameraPosition();
-    updateMiniMap(scrollTop);
+    if (!cameraLocked){
+      scrollTop = updateCameraPosition();
+      updateMiniMap(scrollTop);
+    }
   }
 
   function updateCameraPosition() {
@@ -653,7 +658,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let tankFireCounter = 0;
 
   let redMinis = [];
-  const redMiniPath = [[80, 450], [80, 30], [30, 30], [250, 30]];
+  // const redMiniPath = [[80, 450], [80, 30], [30, 30], [250, 30]];
+  const redMiniPath = [[80, 450]];
   const miniSpeed = 32 / SPEED_DISPLAY_MULTIPLIER;
 
   function spawnRedMini() {
@@ -917,13 +923,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  upgradeImages[0].addEventListener('click', () => handleUpgrade(1));
-  upgradeImages[1].addEventListener('click', () => handleUpgrade(2));
-  upgradeImages[2].addEventListener('click', () => handleUpgrade(3));
-
-  tank.style.left = `${tankX}px`;
-  tank.style.top = `${tankY}px`;
-
   if (tankType === 'shouty') {
     const upgrades = [
       { id: 'item-1', imageSrc: 'imgs/shouty-skill-1.png' },
@@ -936,12 +935,136 @@ document.addEventListener('DOMContentLoaded', () => {
       if (upgradeElement) {
         const imgElement = document.createElement('img');
         imgElement.src = upgrade.imageSrc;
-        imgElement.classList.add('upgrade-image');
+        imgElement.classList.add('upgrade-image', 'skill-image');
         upgradeElement.appendChild(imgElement);
       }
     });
   }
+
+  function bindMessageToImages(messageKeys, imageNodeList, defaultMessage) {
+    imageNodeList.forEach((img, index) => {
+      img.addEventListener("mouseover", () => {
+        skillDescription.innerHTML = skillMessages[tankType][messageKeys[index]];
+      });
+      img.addEventListener("mouseout", () => {
+        skillDescription.innerHTML = defaultMessage;
+      });
+    });
+  }
+  
+  const originalSkillDescription = skillDescription.innerHTML;
+  const upgradeMessageKeys = ["upgrade-1", "upgrade-2", "upgrade-3"];
+  const skillMessageKeys = ["skill-1", "skill-2", "skill-3"];
+  const skillImages = document.querySelectorAll('.skill-image');
+  console.log(skillImages);
+  bindMessageToImages(upgradeMessageKeys, upgradeImages, originalSkillDescription);
+  bindMessageToImages(skillMessageKeys, skillImages, originalSkillDescription);
+
+  tank.style.left = `${tankX}px`;
+  tank.style.top = `${tankY}px`;
   
   updateCameraPosition();
   gameLoop();
+
+  function animateCameraScroll(targetScrollTop, velocity = 900) {
+    const startScrollTop = frame.scrollTop;
+    const delta = targetScrollTop - startScrollTop;
+    const startTime = performance.now();
+  
+    function animate(time) {
+      const elapsed = (time - startTime) / 1000; // convert ms to seconds
+      const displacement = velocity * elapsed;
+      if (displacement >= Math.abs(delta)) {
+        frame.scrollTop = targetScrollTop;
+        updateMiniMap(frame.scrollTop);
+        return;
+      }
+      frame.scrollTop = startScrollTop + Math.sign(delta) * displacement;
+      updateMiniMap(frame.scrollTop);
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  }
+
+  // When clicking the mini map, update the camera view gradually.
+  miniMapContainer.addEventListener('click', (e) => {
+    cameraLocked = true;
+    e.stopPropagation(); // Prevent interfering with other click events
+    const rect = miniMapContainer.getBoundingClientRect();
+    const clickY = e.clientY - rect.top; // Y coordinate within mini-map
+    // Convert mini-map Y coordinate to map scrollTop value.
+    let targetScrollTop = clickY / scaleFactorY - frame.clientHeight / 2;
+    console.log(targetScrollTop);
+    targetScrollTop = Math.max(0, Math.min(targetScrollTop, map.offsetHeight - frame.clientHeight));
+    animateCameraScroll(targetScrollTop, 900);
+  });
+
+  // When user presses "x", return the camera view to the default view (around the tank) gradually.
+  document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'x' && cameraLocked) {
+      cameraLocked = false;
+      const defaultScrollTop = tankY - frame.clientHeight / 2 + tank.offsetHeight / 2;
+      animateCameraScroll(defaultScrollTop, 900);
+    }
+  });
 });
+
+const skillMessages = {
+                       "splodge": {"skill-1": "Increases your unit's armor by 4 for three secs. 20 secs cooldown.",
+                                   "skill-2": "Repairs your unit by 20 hp over 10 secs. 20 secs cooldown.",
+                                   "skill-3": "Pernamently inceases the sight range of your unit by 10 m.",
+                                   "upgrade-1": "Increases armor by a further 2.",
+                                   "upgrade-2": "Increases heal by a further 20 hp.",
+                                   "upgrade-3": "Increases sight by 2.5 m"},
+ 
+                        "basher": {"skill-1": "Increases your unit's attack speed by 20% over 6 secs. 12 secs cooldown.",
+                                   "skill-2": "Equips your unit with armor piercing shells for 5 secs seconds. 20 secs cooldown.",
+                                   "skill-3": "Permanently increases the shot damage of your unit by 1.5.",
+                                   "upgrade-1": "Increases attack speed by a further +5%.",
+                                   "upgrade-2": "Increases armor piercing by 1.",
+                                   "upgrade-3": "Increases damage by 1.5."},
+
+                        "doc": {"skill-1": "Repairs all allied units within 70m by 30hp over 3 secs. 15 secs cooldown.",
+                                   "skill-2": "Increases your unit's sight range to 50m for 5 secs. 15 secs cooldown.",
+                                   "skill-3": "Permanently increases the speed of your unit by 1.5kph.",
+                                   "upgrade-1": "Increases heal by a further 6hp and range by a further 1m.",
+                                   "upgrade-2": "Increases sight by a further 5m. Reduces cooldown by 0.5 secs.",
+                                   "upgrade-3": "Increases speed by 1.2kph."},
+
+                        "stinger":  {"skill-1": "A hard hitting projectile that stuns an enemy for 2 secs seconds. 20 secs cooldown.",
+                                   "skill-2": "Slows enemy movement by -26% and attack speed by -20%. Lasts 5 secs. 20 secs cooldown.",
+                                   "skill-3": "Increases your unit's attack by +15% and speed by 4.5kph for 5 secs. 15 secs cooldown.",
+                                   "upgrade-1": "Increases duration by 0.1 secs. Reduces cooldown by 1 secs.",
+                                   "upgrade-2": "Increases slow by -10% and reduces attack speed by a further +5%.",
+                                   "upgrade-3": "Increases attack speed by a further +4% and move speed by a further 0.9kph."},
+ 
+                       "shouty":  {"skill-1": "Long range missile with 30 damage and 130m range. Ignores armor. 0.82 secs cooldown.",
+                                   "skill-2": "A long range mortar with 30 damage, 150m range and a 40 radius. 20 secs cooldown.",
+                                   "skill-3": "Instantly reloads the Missile and Mortar. 60 secs cooldown.",
+                                   "upgrade-1": "Increase damage by 6.",
+                                   "upgrade-2": "Increases mortar damage by 9 and splash by 5.",
+                                   "upgrade-3": "Reduces cooldown by 4 secs."},
+   
+                       "sneaky":  {"skill-1": "A short range grenade with 49 damage and <74m range. 8 secs cooldown.",
+                                   "skill-2": "Teleports you 120m in the direction you choose. 28 secs cooldown.",
+                                   "skill-3": "Pernamently inceases the armor level of your tank by 10%.",
+                                   "upgrade-1": "Increases danage by 6m and range by 1m.",
+                                   "upgrade-2": "Reduces cooldown by 2 secs.",
+                                   "upgrade-3": "Increases armor level by 1.5"},
+
+                      "dash":  {"skill-1": "Massively increases your unit's attack speed by +100% for 2.5 secs. 30 secs cooldown.",
+                                   "skill-2": "Makes you invisible and move more quickly for 3 secs, or until you attack an enemy. 20 secs cooldown.",
+                                   "skill-3": "Permanently improves the repair ability of your unit by 0.4hp per second.",
+                                   "upgrade-1": "Increase attack speed by a further +20%. Reduces cooldown by 1 secs.",
+                                   "upgrade-2": "Increases duration by 0.4 secs. Reduces cooldown by 1 secs.",
+                                   "upgrade-3": "Increases repair by 0.2hp per second."},
+
+                      "cutter":  {"skill-1": "Increases your unit's speed by 30kph and attack by 5 for 1.5 secs seconds. 5 secs cooldown.",
+                                   "skill-2": "Releases a burst of energy that stuns enemies within 60m for 2 secs. 12 secs cooldown.",
+                                   "skill-3": "Permanently enables your unit to steal energy when it attacks. 5% of this energy will repair you.",
+                                   "upgrade-1": "Increases duration by a further 0.1 secs and attack by a further 2.",
+                                   "upgrade-2": "Increases duration by 0.2 secs. Reduces cooldown by 0.5 secs.",
+                                   "upgrade-3": "Increases percentage by 4%."}
+ 
+                       
+};
