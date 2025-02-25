@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let tankMaxHP = 200;
   let tankCurrentHP = tankMaxHP;
   let tankArmor = 0.15;
-  let tankDamage = 10;
+  let tankDamage = 1000;
   let turretArmor = 0.10;
   let skillLevels = [1, 1, 1];
 
@@ -129,10 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const tankMarker = createMarker('mini-map-tank-turret mini-map-red', tankX, tankY);
-  turrets.forEach(turret => {
-    const turretColor = turret.classList.contains('red') ? 'mini-map-red' : 'mini-map-blue';
-    createMarker(`mini-map-tank-turret ${turretColor}`, turret.offsetLeft, turret.offsetTop);
-  });
   const cameraViewMarker = createCameraViewMarker();
   walls.forEach(createWallMarker);
 
@@ -400,49 +396,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }, invulnerabilityDuration);
   }
 
-  let targets = {
-    red: [],
-    blue: []
-  };
+  let targets = [];
 
   function updateTargetInfo() {
-    targets.red = [];
-    targets.blue = [];
+    targets = [];
 
-    // 1. Add the tank.
     const tankCenterX = tankX + tankImage.offsetWidth / 2;
     const tankCenterY = tankY + tankImage.offsetHeight / 2;
-    if (tank.classList.contains('red')) {
-      targets.red.push({ target: tank, centerX: tankCenterX, centerY: tankCenterY });
-    } else if (tank.classList.contains('blue')) {
-      targets.blue.push({ target: tank, centerX: tankCenterX, centerY: tankCenterY });
-    }
+    const teamColour = tank.classList.contains('red') ? 'red' : 'blue';
+    targets.push({ target: tank, centerX: tankCenterX, centerY: tankCenterY, team: teamColour });
 
-    // 2. Add minis.
-    // (Assuming redMinis array exists; if blue minis are added later, handle them similarly.)
-    redMinis.forEach(mini => {
-      if (mini.health > 0) {
-        const left = parseFloat(mini.container.style.left);
-        const top = parseFloat(mini.container.style.top);
-        const centerX = left + mini.container.offsetWidth / 2;
-        const centerY = top + mini.container.offsetHeight / 2;
-        targets.red.push({ target: mini, centerX, centerY });
-      }
-    });
-
-    // 3. Add enemy turret towers.
-    // Convert NodeList to array for ease.
-    Array.from(turrets).forEach(t => {
-      const idx = Array.from(turrets).indexOf(t);
-      if (turretCurrentHPs[idx] > 0) { // only active turrets
-        const centerX = t.offsetLeft + t.offsetWidth / 2;
-        const centerY = t.offsetTop + t.offsetHeight / 2;
-        if (t.classList.contains('red')) {
-          targets.red.push({ target: t, centerX, centerY });
-        } else if (t.classList.contains('blue')) {
-          targets.blue.push({ target: t, centerX, centerY });
-        }
-      }
+    turretObjects.forEach(turret => {
+      targets.push({ target: turret.element, centerX: turret.centerX, centerY: turret.centerY, team: turret.team });
     });
   }
 
@@ -453,9 +418,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let sourceCenterX = source.offsetLeft + source.offsetWidth / 2;
     let sourceCenterY = source.offsetTop + source.offsetHeight / 2;
     let sourceEnemyColor = source.classList.contains('red') ? 'blue' : 'red';
-    
-    if (sourceEnemyColor === 'blue'){
-      targets.blue.forEach(target => {
+
+    targets.forEach(target => {
+      if(target.team === sourceEnemyColor) {
         let dx = target.centerX - sourceCenterX;
         let dy = target.centerY - sourceCenterY;
         let distance = Math.hypot(dx, dy);
@@ -465,39 +430,11 @@ document.addEventListener('DOMContentLoaded', () => {
           targetCenterX = target.centerX;
           targetCenterY = target.centerY;
         }
-      });
-    }
-    else if (sourceEnemyColor === 'red'){
-      targets.red.forEach(target => {
-        let dx = target.centerX - sourceCenterX;
-        let dy = target.centerY - sourceCenterY;
-        let distance = Math.hypot(dx, dy);
-        if (distance < closestDistance){
-          closestDistance = distance;
-          closestTarget = target.target;
-          targetCenterX = target.centerX;
-          targetCenterY = target.centerY;
-        }
-      });
-    }
+      }
+    });
+
     targetInfo = closestTarget ? { target: closestTarget, centerX: targetCenterX, centerY: targetCenterY, distance: closestDistance } : null;
     return targetInfo;
-  }
-  
-  count = 0
-  // UPDATED: Rotate the turret's gun toward its closest enemy target if one is in range.
-  function rotateGun(gun, turret, originalGunRotation) {
-    const targetInfo = findClosestTarget(turret);
-    if (targetInfo && targetInfo.distance <= turretFireRange) {
-      const gunCenterX = turret.offsetLeft + 19;
-      const gunCenterY = turret.offsetTop + 19;
-      const deltaX = targetInfo.centerX - gunCenterX;
-      const deltaY = targetInfo.centerY - gunCenterY;
-      const targetAngle = Math.atan2(deltaY, deltaX) - Math.PI / 2;
-      rotateElement(gun, targetAngle, 0.01);
-    } else {
-      rotateElement(gun, originalGunRotation, 0.01);
-    }
   }
 
   function isWithinRange(fireRange, turret) {
@@ -608,31 +545,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('hp-value').textContent = `${Math.round(tankCurrentHP)}/${tankMaxHP}`;
   }
 
-  function findClosestTurret() {
-    let closestTurret = null;
-    let closestDistance = Infinity;
-    const tankCenterX = tankX + tankImage.offsetWidth / 2;
-    const tankCenterY = tankY + tankImage.offsetHeight / 2;
-
-    turrets.forEach((turret, index) => {
-      if (turretCurrentHPs[index] <= 0 || turret.classList.contains(teamColor)) 
-        return;
-
-      const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-      const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-      const deltaX = turretCenterX - tankCenterX;
-      const deltaY = turretCenterY - tankCenterY;
-      const distance = Math.hypot(deltaX, deltaY);
-
-      if (distance <= tankFireRange && distance < closestDistance) {
-        closestTurret = turret;
-        closestDistance = distance;
-      }
-    });
-
-    return [closestTurret, closestDistance];
-  }
-
   const turretCollisionVertices = {};
   turrets.forEach((turret) => {
     const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
@@ -648,142 +560,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let tankFireCounter = 0;
 
-  let redMinis = [];
-  // const redMiniPath = [[80, 450], [80, 30], [30, 30], [250, 30]];
-  const redMiniPath = [[80, 450]];
-  const miniSpeed = 32 / SPEED_DISPLAY_MULTIPLIER;
-
-  function spawnRedMini() {
-    const mini = {
-      container: document.createElement('div'),
-      blades: document.createElement('img'),
-      face: document.createElement('img'),
-      hpBarContainer: document.createElement('div'),
-      hpBar: document.createElement('div'),
-      health: 80,
-      maxHealth: 120,
-      path: redMiniPath,
-      currentIndex: 0,
-      isRotating: false,
-      isMoving: false,
-      speed: miniSpeed,
-      rotationSpeed: frameRotationSpeed,
-      update: function() {
-        if (this.health <= 0) return;
-
-        // If not already rotating or moving and there is a next coordinate, begin rotation.
-        if (!this.isRotating && !this.isMoving && this.currentIndex < this.path.length - 1) {
-          const nextTarget = this.path[this.currentIndex + 1];
-          const currentX = parseFloat(this.container.style.left);
-          const currentY = parseFloat(this.container.style.top);
-          const deltaX = nextTarget[0] - currentX;
-          const deltaY = nextTarget[1] - currentY;
-          const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-          this.isRotating = true;
-          rotateElement(this.face, targetAngle, this.rotationSpeed, () => {
-            this.isRotating = false;
-            this.isMoving = true;
-          });
-        }
-
-        // If moving, update position toward the next waypoint.
-        if (this.isMoving) {
-          const nextTarget = this.path[this.currentIndex + 1];
-          const currentX = parseFloat(this.container.style.left);
-          const currentY = parseFloat(this.container.style.top);
-          const deltaX = nextTarget[0] - currentX;
-          const deltaY = nextTarget[1] - currentY;
-          const distance = Math.hypot(deltaX, deltaY);
-          if (distance > this.speed) {
-            const moveX = (deltaX / distance) * this.speed;
-            const moveY = (deltaY / distance) * this.speed;
-            this.container.style.left = `${currentX + moveX}px`;
-            this.container.style.top = `${currentY + moveY}px`;
-          } else {
-            // Snap to target and prepare for next segment.
-            this.container.style.left = `${nextTarget[0]}px`;
-            this.container.style.top = `${nextTarget[1]}px`;
-            this.isMoving = false;
-            this.currentIndex++;
-            // If reached final coordinate, mini will just stop.
-          }
-        }
-        // Update the HP bar width.
-        const hpPercentage = Math.max(this.health / this.maxHealth, 0) * 100;
-        this.hpBar.style.width = `${hpPercentage}%`;
-      },
-      takeDamage: function(damage) {
-        this.health -= damage;
-        if (this.health <= 0) {
-          // Remove mini from the map.
-          this.container.remove();
-        }
-      }
-    };
-
-    // Setup container style.
-    mini.container.style.position = 'absolute';
-    mini.container.style.left = `${redMiniPath[0][0]}px`;
-    mini.container.style.top = `${redMiniPath[0][1]}px`;
-    mini.container.style.width = '18px';
-    mini.container.style.height = '18px';
-    mini.container.style.zIndex = 1000;
-
-    // Setup mini image.
-    mini.blades.src = 'imgs/mini-blades.png';
-    mini.blades.style.width = '100%';
-    mini.blades.style.height = '100%';
-    mini.blades.style.transform = 'rotate(0rad)';
-    mini.blades.style.zIndex = '1';
-    mini.container.appendChild(mini.blades);
-
-    // Add red side mini image centered with a higher z-index.
-    mini.face.src = 'imgs/red-side-mini.png';
-    mini.face.style.width = '12px';
-    mini.face.style.height = '12px';
-    mini.face.style.position = 'absolute';
-    // Centering the smaller image in the 18px container:
-    mini.face.style.left = '3px';
-    mini.face.style.top = '3px';
-    mini.face.style.zIndex = '2';
-    mini.container.appendChild(mini.face);
-
-    // Setup HP bar container (displayed just above the mini).
-    mini.hpBarContainer.style.position = 'absolute';
-    mini.hpBarContainer.style.bottom = '100%';
-    mini.hpBarContainer.style.left = '0';
-    mini.hpBarContainer.style.width = '100%';
-    mini.hpBarContainer.style.height = '2px';
-    mini.hpBarContainer.style.backgroundColor = 'gray';
-
-    // Setup HP bar.
-    mini.hpBar.style.width = '100%';
-    mini.hpBar.style.height = '100%';
-    mini.hpBar.style.backgroundColor = 'green';
-    mini.hpBarContainer.appendChild(mini.hpBar);
-    mini.container.appendChild(mini.hpBarContainer);
-
-    map.appendChild(mini.container);
-    redMinis.push(mini);
-  }
-
-  spawnRedMini();
-  setInterval(spawnRedMini, 15000);
-
   function gameLoop() {
     moveTank();
     updateTargetInfo();
-    const [closestTurret, closestDistance] = findClosestTurret();
+    const targetInfo = findClosestTarget(tank);
     
     // Handle tank rotation
-    if (closestTurret && closestDistance <= tankFireRange) {
+    if (targetInfo && targetInfo.distance <= tankFireRange) {
       // When in range of turret, aim at it
-      const turretCenterX = closestTurret.offsetLeft + closestTurret.offsetWidth / 2;
-      const turretCenterY = closestTurret.offsetTop + closestTurret.offsetHeight / 2;
       const tankTopX = tankX + tankImage.offsetWidth / 2;
       const tankTopY = tankY + tankImage.offsetHeight / 2;
-      const deltaX = turretCenterX - tankTopX;
-      const deltaY = turretCenterY - tankTopY;
+      const deltaX = targetInfo.centerX - tankTopX;
+      const deltaY = targetInfo.centerY - tankTopY;
       const targetAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
       
       isUpperFrameRotating = true;
@@ -791,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Fire at turret when in range
       if (tankFireCounter % tankFireInterval === 0)
-        fireBullet(tankTopX, tankTopY, turretCenterX, turretCenterY, 'tank-bullet');
+        fireBullet(tankTopX, tankTopY, targetInfo.centerX, targetInfo.centerY, 'tank-bullet');
       
     } else if (isUpperFrameRotating) {
       // When out of range, align tank with frame
@@ -804,29 +592,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tankFireCounter++;
 
-    guns.forEach((gun, index) => {
-      rotateGun(gun, turrets[index], originalGunRotations[index]);
-    });
-
-    redMinis.forEach((mini) => {
-      if (mini.health > 0) 
-        mini.update();
+    turretObjects.forEach(turret => {
+      turret.rotateGun()
+      turret.framesSinceShot++;
+      if (turret.framesSinceShot > turret.fireInterval) {
+        if (isWithinRange(turret.fireRange, turret.element)) {
+          fireBullet(turret.centerX, turret.centerY, tankX + tankImage.offsetWidth / 2, tankY + tankImage.offsetHeight / 2, 'tower-bullet');
+          turret.framesSinceShot = 0;
+        }
+      }
     });
 
     setTimeout(gameLoop, frameInterval);
   }
   
-  turrets.forEach((turret, index) => {
-    setInterval(() => {
-      if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
-        const tankCenterX = tankX + tankImage.offsetWidth / 2;
-        const tankCenterY = tankY + tankImage.offsetHeight / 2;
-        const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
-        const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
-        fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
-      }
-    }, turretFireInterval);
-  });
+  // turrets.forEach((turret, index) => {
+  //   setInterval(() => {
+  //     if (isWithinRange(turretFireRange, turret) && turret.classList.contains(enemyColor)) {
+  //       const tankCenterX = tankX + tankImage.offsetWidth / 2;
+  //       const tankCenterY = tankY + tankImage.offsetHeight / 2;
+  //       const turretCenterX = turret.offsetLeft + turret.offsetWidth / 2;
+  //       const turretCenterY = turret.offsetTop + turret.offsetHeight / 2;
+  //       fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
+  //     }
+  //   }, turretFireInterval);
+  // });
 
   setInterval(() => {
     regenerateHealth();
@@ -952,6 +742,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
   tank.style.left = `${tankX}px`;
   tank.style.top = `${tankY}px`;
+
+  class Turret {
+    constructor(element) {
+      this.element = element;
+      this.id = element.id;
+      this.team = element.classList.contains('red') ? 'red' : 'blue';
+      if (element.classList.contains('front')) {
+        this.maxHP = 400;
+      } else if (element.classList.contains('back')) {
+        this.maxHP = 800;
+      } else if (element.classList.contains('main')) {
+        this.maxHP = 1600;
+      }
+      this.currentHP = this.maxHP;
+      this.armor = 0.10;
+      this.collisionVertices = [];
+      this.fireRange = 160;
+      this.fireInterval = 30 * frameRate;
+      this.fireDamage = 30;
+      this.gun = this.element.querySelector('.gun-image');
+      this.originalGunRotation = this.element.style.transform.replace(/rotate\(([^)]+)rad\)/, '$1') || 0;
+      this.framesSinceShot = 0;
+      this.centerX = this.element.offsetLeft + this.element.offsetWidth / 2;
+      this.centerY = this.element.offsetTop + this.element.offsetHeight / 2;
+      this.miniMapMarker = createMarker(`mini-map-turret ${this.team}`, this.element.offsetLeft, this.element.offsetTop);
+    }
+
+    takeDamage(damage) {
+      if (this.currentHP <= 0) return;
+      this.currentHP -= damage * (1 - this.armor);
+      if (this.currentHP <= 0) {
+        this.currentHP = 0;
+        this.destroy();
+      }
+    }
+
+    destroy() {
+      this.element.remove();
+      delete turretCollisionVertices[this.id];
+      this.miniMapMarker.remove();
+      turretObjects = turretObjects.filter(turret => turret !== this);
+      // Optional: clean up related collision data
+    }
+
+    updateCollisionVertices(calculateVertices) {
+      this.collisionVertices = calculateVertices(this.centerX, this.centerY);
+    }
+  
+    fire() {
+      fireBullet(turretCenterX, turretCenterY, tankCenterX, tankCenterY, 'tower-bullet');
+    }
+  
+    rotateGun() {
+      const targetInfo = findClosestTarget(this.element);
+      if (targetInfo && targetInfo.distance <= this.fireRange) {
+        const gunCenterX = this.element.offsetLeft + 19;
+        const gunCenterY = this.element.offsetTop + 19;
+        const deltaX = targetInfo.centerX - gunCenterX;
+        const deltaY = targetInfo.centerY - gunCenterY;
+        const targetAngle = Math.atan2(deltaY, deltaX) - Math.PI / 2;
+        rotateElement(this.gun, targetAngle, 0.01);
+      } else {
+        rotateElement(this.gun, this.originalGunRotation, 0.01);
+      }
+    }
+  }
+
+  let turretObjects = Array.from(turrets).map(turretElement =>
+    new Turret(turretElement)
+  );
   
   updateCameraPosition();
   gameLoop();
